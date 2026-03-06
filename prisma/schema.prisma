@@ -1,0 +1,143 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["appcompany"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
+model MenuItem {
+  id        String   @id @default(cuid())
+  name      String
+  desc      String
+  price     String
+  category  String
+  spice     String?
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
+model Promo {
+  id        String   @id @default(cuid())
+  type      String
+  src       String
+  tag       String
+  title     String
+  desc      String
+  cta       String
+  ctaLink   String
+  badge     String
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
+model SosmedPost {
+  id        String   @id @default(cuid())
+  type      String
+  src       String
+  link      String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
+model JobPosition {
+  id           String   @id @default(cuid())
+  title        String
+  dept         String
+  type         String
+  location     String
+  desc         String
+  requirements String[]
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@schema("appcompany")
+}
+
+model SiteSettings {
+  id           String   @id @default(cuid())
+  siteName     String   @default("100Hours Curry")
+  tagline      String?
+  email        String?
+  phone        String?
+  address      String?
+  logoUrl      String?
+  facebookUrl  String?
+  instagramUrl String?
+  mapLat       Float?
+  mapLng       Float?
+  openHours    String?
+  tiktokUrl    String?
+  youtubeUrl   String?
+  updatedAt    DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
+model AboutContent {
+  id          String   @id @default(cuid())
+  story       String
+  founded     String
+  locations   String
+  bowlsServed String
+  imageUrl    String?
+  updatedAt   DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  bio       String
+  imageUrl  String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@schema("appcompany")
+}
