@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, ChefHat } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 
 const navLinks = [
     { href: '/', label: 'Home' },
@@ -16,6 +17,7 @@ const navLinks = [
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
+    const pathname = usePathname()
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -23,20 +25,16 @@ export function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
+    const isActive = (href: string) =>
+        href === '/' ? pathname === '/' : pathname.startsWith(href)
+
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-black/95 backdrop-blur-md shadow-lg shadow-yellow-500/10' : 'bg-transparent'
-            }`}>
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-black/95 backdrop-blur-md shadow-lg shadow-yellow-500/10' : 'bg-transparent'}`}>
             <div className="max-w-7xl mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-400/30 group-hover:scale-110 transition-transform duration-300 overflow-hidden">
-                            <Image
-                                src="/images/LOGOCURRY1.png"
-                                alt="100 Hours Curry"
-                                width={36}
-                                height={36}
-                                className="object-contain"
-                            />
+                            <Image src="/images/LOGOCURRY1.png" alt="100 Hours Curry" width={36} height={36} className="object-contain" />
                         </div>
                         <div>
                             <p className="font-black text-lg leading-none text-white">100HOURS</p>
@@ -46,8 +44,16 @@ export function Navbar() {
 
                     <div className="hidden md:flex items-center gap-1">
                         {navLinks.map((link) => (
-                            <Link key={link.href} href={link.href} className="px-4 py-2 rounded-full text-sm font-semibold text-white/70 hover:text-yellow-400 hover:bg-white/5 transition-all duration-200">
+                            <Link key={link.href} href={link.href}
+                                className={`relative px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${isActive(link.href)
+                                    ? 'text-yellow-400 bg-yellow-400/10'
+                                    : 'text-white/70 hover:text-yellow-400 hover:bg-white/5'
+                                    }`}>
                                 {link.label}
+                                {/* Dot indicator */}
+                                {isActive(link.href) && (
+                                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-yellow-400 rounded-full" />
+                                )}
                             </Link>
                         ))}
                     </div>
@@ -66,8 +72,15 @@ export function Navbar() {
                 {isOpen && (
                     <div className="md:hidden mt-4 p-4 bg-black/95 rounded-2xl shadow-xl border border-yellow-400/20">
                         {navLinks.map((link) => (
-                            <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)} className="block px-4 py-3 rounded-xl text-sm font-semibold text-white/70 hover:text-yellow-400 hover:bg-white/5 transition-all">
+                            <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)}
+                                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive(link.href)
+                                    ? 'text-yellow-400 bg-yellow-400/10'
+                                    : 'text-white/70 hover:text-yellow-400 hover:bg-white/5'
+                                    }`}>
                                 {link.label}
+                                {isActive(link.href) && (
+                                    <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full" />
+                                )}
                             </Link>
                         ))}
                         <Link href="/contact" className="mt-2 block text-center bg-yellow-400 text-black px-6 py-3 rounded-xl text-sm font-black">
