@@ -27,7 +27,6 @@ type NavItem = {
     children: NavChild[]
 }
 
-// Static fallback kalau DB belum ada data
 const FALLBACK: NavItem[] = [
     { id: '1', label: 'Dashboard', icon: 'LayoutDashboard', href: '/dashboard', groupName: null, isActive: true, children: [] },
     {
@@ -56,35 +55,53 @@ function getIcon(name: string): LucideIcon {
     return LucideIcons.Circle
 }
 
+const Logo = () => (
+    <div className="p-6 border-b border-yellow-400/10">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-yellow-400/20">
+                <Image src="/images/LOGOCURRY1.png" alt="Logo" width={32} height={32} className="object-contain" />
+            </div>
+            <div>
+                <p className="font-black text-sm text-white">100HOURS</p>
+                <p className="text-xs font-bold text-yellow-400 tracking-widest">ADMIN PANEL</p>
+            </div>
+        </div>
+    </div>
+)
+
 export function AdminSidebar() {
     const pathname = usePathname()
-    const [items, setItems] = useState<NavItem[]>(FALLBACK)
+    const [items, setItems] = useState<NavItem[] | null>(null)
 
     useEffect(() => {
         fetch('/api/admin/nav')
             .then(r => r.json())
             .then(data => {
-                if (Array.isArray(data) && data.length > 0) setItems(data)
+                if (Array.isArray(data) && data.length > 0) {
+                    setItems(data)
+                } else {
+                    setItems(FALLBACK)
+                }
             })
-            .catch(() => { })
-    }, [pathname]) // re-fetch setiap ganti halaman
+            .catch(() => setItems(FALLBACK))
+    }, [pathname])
+
+    // Skeleton saat loading
+    if (items === null) return (
+        <aside className="w-64 bg-zinc-950 border-r border-yellow-400/10 text-white flex flex-col h-full shrink-0">
+            <Logo />
+            <nav className="flex-1 p-4 space-y-2">
+                {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-9 bg-white/5 rounded-xl animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                ))}
+            </nav>
+        </aside>
+    )
 
     return (
         <aside className="w-64 bg-zinc-950 border-r border-yellow-400/10 text-white flex flex-col h-full shrink-0">
-            {/* Logo */}
-            <div className="p-6 border-b border-yellow-400/10">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-yellow-400/20">
-                        <Image src="/images/LOGOCURRY1.png" alt="Logo" width={32} height={32} className="object-contain" />
-                    </div>
-                    <div>
-                        <p className="font-black text-sm text-white">100HOURS</p>
-                        <p className="text-xs font-bold text-yellow-400 tracking-widest">ADMIN PANEL</p>
-                    </div>
-                </div>
-            </div>
+            <Logo />
 
-            {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto space-y-1">
                 {items.filter(i => i.isActive).map((item) => {
                     // Group dengan children
@@ -142,7 +159,6 @@ export function AdminSidebar() {
                 })}
             </nav>
 
-            {/* Logout */}
             <div className="p-4 border-t border-yellow-400/10">
                 <button onClick={() => signOut({ callbackUrl: '/login' })}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-white/40 hover:bg-red-500/10 hover:text-red-400 transition-all">
