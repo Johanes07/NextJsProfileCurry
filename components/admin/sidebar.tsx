@@ -16,10 +16,24 @@ import {
     ChevronRight,
     Users,
     BookOpen,
+    type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const menuItems = [
+type SingleItem = {
+    href: string
+    label: string
+    icon: LucideIcon
+}
+
+type GroupItem = {
+    label: string
+    items: SingleItem[]
+}
+
+type MenuItem = SingleItem | GroupItem
+
+const menuItems: MenuItem[] = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     {
         label: 'Website',
@@ -40,6 +54,10 @@ const menuItems = [
         ],
     },
 ]
+
+function isSingleItem(item: MenuItem): item is SingleItem {
+    return 'href' in item
+}
 
 export function AdminSidebar() {
     const pathname = usePathname()
@@ -68,9 +86,8 @@ export function AdminSidebar() {
             {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto space-y-6">
                 {menuItems.map((section, i) => {
-                    if ('href' in section && section.href) {
-                        // Single item (Dashboard)
-                        const Icon = section.icon as React.ElementType
+                    if (isSingleItem(section)) {
+                        const Icon = section.icon
                         const isActive = pathname === section.href
                         return (
                             <Link
@@ -90,7 +107,6 @@ export function AdminSidebar() {
                         )
                     }
 
-                    // Group
                     return (
                         <div key={i}>
                             <p className="text-white/20 text-xs font-black tracking-widest px-3 mb-2">
