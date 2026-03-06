@@ -68,7 +68,7 @@ export function AdminSidebar() {
             {/* Navigation */}
             <nav className="flex-1 p-4 overflow-y-auto space-y-6">
                 {menuItems.map((section, i) => {
-                    if ('href' in section) {
+                    if ('href' in section && section.href) {
                         // Single item (Dashboard)
                         const Icon = section.icon as React.ElementType
                         const isActive = pathname === section.href
