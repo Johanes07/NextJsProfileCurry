@@ -6,8 +6,12 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Company Profile',
-  description: 'Company Profile Website',
+  title: '100Hours Curry',
+  description: 'The Most Legendary Curry',
+  icons: {
+    icon: '/images/LOGOCURRY1.png',        // favicon tab
+    apple: '/images/LOGOCURRY1.png',       // iOS
+  },
 }
 
 export default function RootLayout({
