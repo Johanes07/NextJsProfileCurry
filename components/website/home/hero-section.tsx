@@ -22,23 +22,35 @@ type HeroData = {
     stat3Suffix: string
 }
 
+const defaultHero: HeroData = {
+    badgeText: 'SIMMERED FOR 100 HOURS',
+    headingLine1: 'THE MOST',
+    headingLine2: 'LEGENDARY',
+    headingLine3: 'CURRY',
+    subtitle: "Every bowl is a masterpiece. We slow-cook our signature curry for exactly 100 hours to achieve the deepest, most complex flavors you've ever tasted.",
+    estYear: '2020',
+    stat1Value: '100', stat1Label: 'Hours Cooked', stat1Suffix: 'hrs',
+    stat2Value: '4.9', stat2Label: 'Rating', stat2Suffix: '★',
+    stat3Value: '50K+', stat3Label: 'Bowls Served', stat3Suffix: '',
+}
+
 export function HeroSection() {
     const [mounted, setMounted] = useState(false)
-    const [data, setData] = useState<HeroData | null>(null)
+    const [hero, setHero] = useState<HeroData>(defaultHero)
 
     useEffect(() => {
         setMounted(true)
-        fetch('/api/admin/hero')
-            .then(r => r.json())
-            .then(d => setData(d))
+        fetch('/api/website/hero')
+            .then(res => res.json())
+            .then(data => { if (data && data.badgeText) setHero(data) })
             .catch(() => { })
     }, [])
 
-    const stats = data ? [
-        { value: data.stat1Value, label: data.stat1Label, suffix: data.stat1Suffix },
-        { value: data.stat2Value, label: data.stat2Label, suffix: data.stat2Suffix },
-        { value: data.stat3Value, label: data.stat3Label, suffix: data.stat3Suffix },
-    ] : []
+    const stats = [
+        { value: hero.stat1Value, label: hero.stat1Label, suffix: hero.stat1Suffix },
+        { value: hero.stat2Value, label: hero.stat2Label, suffix: hero.stat2Suffix },
+        { value: hero.stat3Value, label: hero.stat3Label, suffix: hero.stat3Suffix },
+    ]
 
     return (
         <section className="relative min-h-screen overflow-hidden bg-black">
@@ -73,28 +85,26 @@ export function HeroSection() {
                     {/* Badge */}
                     <div className={`inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-4 py-2 mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                         <Clock className="w-4 h-4 text-yellow-400" />
-                        <span className="text-yellow-400 text-sm font-bold tracking-wider">
-                            {data?.badgeText ?? ''}
-                        </span>
+                        <span className="text-yellow-400 text-sm font-bold tracking-wider">{hero.badgeText}</span>
                     </div>
 
                     {/* Heading */}
                     <h1 className={`text-6xl md:text-8xl font-black text-white leading-none mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                        <span className="block">{data?.headingLine1 ?? ''}</span>
-                        <span className="block text-yellow-400">{data?.headingLine2 ?? ''}</span>
-                        <span className="block">{data?.headingLine3 ?? ''}</span>
+                        <span className="block">{hero.headingLine1}</span>
+                        <span className="block text-yellow-400">{hero.headingLine2}</span>
+                        <span className="block">{hero.headingLine3}</span>
                     </h1>
 
                     {/* Divider */}
                     <div className={`flex items-center justify-center gap-4 mb-6 transition-all duration-700 delay-200 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
                         <div className="h-px bg-yellow-400/30 w-24" />
-                        <span className="text-yellow-400 text-sm font-bold tracking-widest">EST. {data?.estYear ?? ''}</span>
+                        <span className="text-yellow-400 text-sm font-bold tracking-widest">EST. {hero.estYear}</span>
                         <div className="h-px bg-yellow-400/30 w-24" />
                     </div>
 
                     {/* Subtitle */}
                     <p className={`text-lg md:text-xl text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                        {data?.subtitle ?? ''}
+                        {hero.subtitle}
                     </p>
 
                     {/* CTA */}
@@ -109,16 +119,14 @@ export function HeroSection() {
                     </div>
 
                     {/* Stats */}
-                    {stats.length > 0 && (
-                        <div className={`mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto transition-all duration-700 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                            {stats.map(({ value, label, suffix }) => (
-                                <div key={label} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-yellow-400/30 transition-all">
-                                    <p className="text-3xl font-black text-yellow-400">{value}<span className="text-lg">{suffix}</span></p>
-                                    <p className="text-white/40 text-xs mt-1 font-medium">{label}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <div className={`mt-16 grid grid-cols-3 gap-6 max-w-lg mx-auto transition-all duration-700 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                        {stats.map(({ value, label, suffix }) => (
+                            <div key={label} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-yellow-400/30 transition-all">
+                                <p className="text-3xl font-black text-yellow-400">{value}<span className="text-lg">{suffix}</span></p>
+                                <p className="text-white/40 text-xs mt-1 font-medium">{label}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 

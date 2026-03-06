@@ -18,7 +18,6 @@ model User {
   role      String   @default("admin")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@schema("appcompany")
 }
 
@@ -34,7 +33,6 @@ model MenuItem {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@schema("appcompany")
 }
 
@@ -52,7 +50,6 @@ model Promo {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@schema("appcompany")
 }
 
@@ -65,7 +62,6 @@ model SosmedPost {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@schema("appcompany")
 }
 
@@ -80,7 +76,6 @@ model JobPosition {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
   @@schema("appcompany")
 }
 
@@ -92,7 +87,6 @@ model ContactMessage {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
   @@schema("appcompany")
 }
 
@@ -112,7 +106,6 @@ model SiteSettings {
   tiktokUrl    String?
   youtubeUrl   String?
   updatedAt    DateTime @updatedAt
-
   @@schema("appcompany")
 }
 
@@ -124,7 +117,6 @@ model AboutContent {
   bowlsServed String
   imageUrl    String?
   updatedAt   DateTime @updatedAt
-
   @@schema("appcompany")
 }
 
@@ -138,6 +130,56 @@ model TeamMember {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@schema("appcompany")
+}
 
+// ─── HERO CONTENT ─────────────────────────────────────────
+model HeroContent {
+  id          String   @id @default(cuid())
+  badgeText   String   @default("SIMMERED FOR 100 HOURS")
+  headingLine1 String  @default("THE MOST")
+  headingLine2 String  @default("LEGENDARY")
+  headingLine3 String  @default("CURRY")
+  subtitle    String   @default("Every bowl is a masterpiece.")
+  estYear     String   @default("2020")
+  stat1Value  String   @default("100")
+  stat1Label  String   @default("Hours Cooked")
+  stat1Suffix String   @default("hrs")
+  stat2Value  String   @default("4.9")
+  stat2Label  String   @default("Rating")
+  stat2Suffix String   @default("★")
+  stat3Value  String   @default("50K+")
+  stat3Label  String   @default("Bowls Served")
+  stat3Suffix String   @default("")
+  updatedAt   DateTime @updatedAt
+  @@schema("appcompany")
+}
+
+// ─── ADMIN NAV ITEMS ──────────────────────────────────────
+model AdminNavItem {
+  id        String         @id @default(cuid())
+  label     String
+  icon      String         // nama icon lucide, e.g. "LayoutDashboard"
+  href      String?        // null = group header
+  groupName String?        // nama group kalau ini adalah child
+  order     Int            @default(0)
+  isActive  Boolean        @default(true)
+  children  AdminNavChild[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  @@schema("appcompany")
+}
+
+model AdminNavChild {
+  id        String       @id @default(cuid())
+  label     String
+  icon      String
+  href      String
+  order     Int          @default(0)
+  isActive  Boolean      @default(true)
+  parentId  String
+  parent    AdminNavItem @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   @@schema("appcompany")
 }
