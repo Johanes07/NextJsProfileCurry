@@ -67,9 +67,7 @@ export function MenuGrid() {
         }, 350)
     }, [animating, filtered.length])
 
-    useEffect(() => {
-        setCurrentIndex(0)
-    }, [activeCategory])
+    useEffect(() => { setCurrentIndex(0) }, [activeCategory])
 
     useEffect(() => {
         const timer = setInterval(() => navigate('right'), 4000)
@@ -92,6 +90,20 @@ export function MenuGrid() {
         transition: 'opacity 0.35s ease, transform 0.35s ease',
     }
 
+    const CategoryTabs = () => (
+        <div className="border-b border-white/5 sticky top-16 z-30 bg-black/90 backdrop-blur-md">
+            <div className="max-w-7xl mx-auto px-6 flex overflow-x-auto scrollbar-hide">
+                {categories.map((cat) => (
+                    <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                        className={`relative px-6 md:px-8 py-4 md:py-5 text-xs md:text-sm font-black tracking-widest whitespace-nowrap transition-all duration-300 ${activeCategory === cat.id ? 'text-yellow-400' : 'text-white/30 hover:text-white/60'}`}>
+                        {cat.label.toUpperCase()}
+                        {activeCategory === cat.id && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-400" />}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+
     if (loading) return (
         <section className="bg-black min-h-screen flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
@@ -100,18 +112,8 @@ export function MenuGrid() {
 
     if (!current) return (
         <section className="bg-black min-h-screen">
-            <div className="border-b border-white/5 sticky top-16 z-30 bg-black/90 backdrop-blur-md">
-                <div className="max-w-7xl mx-auto px-6 flex overflow-x-auto">
-                    {categories.map((cat) => (
-                        <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                            className={`relative px-8 py-5 text-sm font-black tracking-widest whitespace-nowrap transition-all duration-300 ${activeCategory === cat.id ? 'text-yellow-400' : 'text-white/30 hover:text-white/60'}`}>
-                            {cat.label.toUpperCase()}
-                            {activeCategory === cat.id && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-400" />}
-                        </button>
-                    ))}
-                </div>
-            </div>
-            <div className="flex items-center justify-center h-[85vh] text-white/20 font-bold">
+            <CategoryTabs />
+            <div className="flex items-center justify-center h-[60vh] text-white/20 font-bold">
                 Belum ada menu di kategori ini
             </div>
         </section>
@@ -119,21 +121,10 @@ export function MenuGrid() {
 
     return (
         <section className="bg-black min-h-screen">
-            {/* Category Tabs */}
-            <div className="border-b border-white/5 sticky top-16 z-30 bg-black/90 backdrop-blur-md">
-                <div className="max-w-7xl mx-auto px-6 flex overflow-x-auto">
-                    {categories.map((cat) => (
-                        <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                            className={`relative px-8 py-5 text-sm font-black tracking-widest whitespace-nowrap transition-all duration-300 ${activeCategory === cat.id ? 'text-yellow-400' : 'text-white/30 hover:text-white/60'}`}>
-                            {cat.label.toUpperCase()}
-                            {activeCategory === cat.id && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-400" />}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <CategoryTabs />
 
             {/* Main Slider */}
-            <div className="relative h-[85vh] overflow-hidden">
+            <div className="relative overflow-hidden">
                 {/* Blurred BG */}
                 <div className="absolute inset-0">
                     {current.imageUrl && (
@@ -142,8 +133,76 @@ export function MenuGrid() {
                     <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black" />
                 </div>
 
-                {/* Content Grid */}
-                <div className="relative z-10 h-full max-w-7xl mx-auto px-6 flex items-center">
+                {/* MOBILE layout */}
+                <div className="relative z-10 md:hidden flex flex-col min-h-[90vh] px-5 pt-8 pb-6">
+                    {/* Image top */}
+                    <div key={current.id + 'img-mobile'} className="relative w-full aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-black mb-6" style={imgStyle}>
+                        {current.imageUrl ? (
+                            <Image src={current.imageUrl} alt={current.name} fill className="object-cover" priority />
+                        ) : (
+                            <div className="w-full h-full bg-white/5 flex items-center justify-center text-white/20 font-bold">No Image</div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                        <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-1.5">
+                            <p className="text-white/40 text-xs">crafted for</p>
+                            <p className="text-white font-black text-sm">100 Hours</p>
+                        </div>
+                    </div>
+
+                    {/* Info bottom */}
+                    <div key={current.id + 'info-mobile'} style={infoStyle} className="flex-1">
+                        <div className="flex items-baseline gap-2 mb-4">
+                            <span className="text-yellow-400 font-black text-4xl leading-none">
+                                {String(currentIndex + 1).padStart(2, '0')}
+                            </span>
+                            <span className="text-white/20 font-bold text-lg">
+                                / {String(filtered.length).padStart(2, '0')}
+                            </span>
+                        </div>
+
+                        {current.spice && (
+                            <div className={`inline-flex items-center gap-2 border rounded-full px-3 py-1 mb-3 ${spiceColor[current.spice]}`}>
+                                <Flame className="w-3 h-3" />
+                                <span className="text-xs font-black tracking-widest">{current.spice.toUpperCase()}</span>
+                            </div>
+                        )}
+
+                        <h2 className="text-3xl font-black text-white leading-none mb-3">{current.name}</h2>
+                        <p className="text-white/40 text-sm leading-relaxed mb-5">{current.desc}</p>
+
+                        <div className="flex items-center gap-4 mb-5">
+                            <div>
+                                <p className="text-white/20 text-xs font-bold tracking-widest mb-1">PRICE</p>
+                                <p className="text-yellow-400 font-black text-2xl">{current.price}</p>
+                            </div>
+                            <button className="group flex items-center gap-2 bg-yellow-400 text-black px-5 py-3 rounded-2xl font-black hover:scale-105 transition-all duration-300 shadow-lg shadow-yellow-400/20">
+                                Order Now
+                                <ArrowUpRight className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Dots + arrows row */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex gap-2">
+                                {filtered.map((_, i) => (
+                                    <button key={i} onClick={() => setCurrentIndex(i)} className="rounded-full transition-all duration-300"
+                                        style={{ width: i === currentIndex ? '2rem' : '0.5rem', height: '0.5rem', backgroundColor: i === currentIndex ? '#facc15' : 'rgba(255,255,255,0.15)' }} />
+                                ))}
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => navigate('left')} className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-black text-white transition-all">
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => navigate('right')} className="w-10 h-10 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-black text-white transition-all">
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* DESKTOP layout */}
+                <div className="relative z-10 hidden md:flex h-[85vh] max-w-7xl mx-auto px-6 items-center">
                     <div className="grid md:grid-cols-2 gap-16 items-center w-full">
                         {/* Left — Text Info */}
                         <div key={current.id + 'info'} style={infoStyle}>
@@ -215,14 +274,14 @@ export function MenuGrid() {
                             )}
                         </div>
                     </div>
-                </div>
 
-                <button onClick={() => navigate('left')} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:border-yellow-400 hover:text-black text-white transition-all duration-300">
-                    <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button onClick={() => navigate('right')} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:border-yellow-400 hover:text-black text-white transition-all duration-300">
-                    <ChevronRight className="w-5 h-5" />
-                </button>
+                    <button onClick={() => navigate('left')} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:border-yellow-400 hover:text-black text-white transition-all duration-300">
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => navigate('right')} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:border-yellow-400 hover:text-black text-white transition-all duration-300">
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
 
             {/* CTA Strip */}
