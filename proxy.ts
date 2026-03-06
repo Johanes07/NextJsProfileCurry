@@ -8,13 +8,7 @@ export async function proxy(request: NextRequest) {
     })
     const pathname = request.nextUrl.pathname
 
-    const isProtected =
-        pathname.startsWith('/dashboard') ||
-        pathname.startsWith('/services') ||
-        pathname.startsWith('/portfolio') ||
-        pathname.startsWith('/blog') ||
-        pathname.startsWith('/messages') ||
-        pathname.startsWith('/settings')
+    const isProtected = pathname.startsWith('/dashboard')
 
     if (isProtected && !token) {
         return NextResponse.redirect(new URL('/login', request.url))
@@ -24,5 +18,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/services/:path*', '/portfolio/:path*', '/blog/:path*', '/messages/:path*', '/settings/:path*'],
+    matcher: ['/dashboard/:path*'],
 }
