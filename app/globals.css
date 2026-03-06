@@ -116,10 +116,32 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* Hide Google Translate UI */
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-te-gadget,
+.skiptranslate iframe {
+  display: none !important;
+}
+
+.skiptranslate {
+  display: none !important;
+}
+
+/* Fix body shift akibat banner Google Translate */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
