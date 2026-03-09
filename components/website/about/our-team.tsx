@@ -31,14 +31,6 @@ export function OurTeam() {
                                     <h3 className="text-3xl md:text-4xl font-black text-white">The People Who Make</h3>
                                     <h3 className="text-3xl md:text-4xl font-black text-yellow-400">Every Bowl Perfect</h3>
                                 </div>
-                                <div className="flex gap-4">
-                                    {[{ value: '20+', label: 'Team Members' }, { value: '5★', label: 'Avg Rating' }].map(({ value, label }) => (
-                                        <div key={label} className="bg-yellow-400/10 border border-yellow-400/30 backdrop-blur-sm rounded-2xl p-4 text-center min-w-[100px]">
-                                            <p className="text-2xl font-black text-yellow-400">{value}</p>
-                                            <p className="text-white/50 text-xs mt-1">{label}</p>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         </div>
                     </div>
