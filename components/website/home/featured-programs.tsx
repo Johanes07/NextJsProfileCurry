@@ -3,19 +3,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
 import { Play, Pause, Volume2, VolumeX, ArrowRight, Tag, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 type Promo = {
-    id: string
-    type: 'image' | 'video'
-    src: string
-    tag: string
-    title: string
-    desc: string
-    cta: string
-    ctaLink: string
-    badge: string
-    isActive: boolean
-    order: number
+    id: string; type: 'image' | 'video'; src: string; tag: string; title: string
+    desc: string; cta: string; ctaLink: string; badge: string; isActive: boolean; order: number
 }
 
 export function FeaturedPrograms() {
@@ -25,26 +17,26 @@ export function FeaturedPrograms() {
     const [playing, setPlaying] = useState(false)
     const [muted, setMuted] = useState(true)
     const [progress, setProgress] = useState(0)
+    const [mounted, setMounted] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
     const timerRef = useRef<NodeJS.Timeout | null>(null)
     const progressRef = useRef<NodeJS.Timeout | null>(null)
     const DURATION = 10000
+    const { resolvedTheme } = useTheme()
 
     useEffect(() => {
+        setMounted(true)
         fetch('/api/website/promo')
             .then(res => res.json())
-            .then(data => {
-                setPromos(Array.isArray(data) ? data : [])
-                setLoadingData(false)
-            })
+            .then(data => { setPromos(Array.isArray(data) ? data : []); setLoadingData(false) })
             .catch(() => setLoadingData(false))
     }, [])
 
+    const isDark = mounted ? resolvedTheme === 'dark' : true
     const current = promos[activeIndex]
 
     const goTo = useCallback((index: number) => {
-        setActiveIndex(index)
-        setProgress(0)
+        setActiveIndex(index); setProgress(0)
         setPlaying(promos[index]?.type === 'video')
         if (timerRef.current) clearTimeout(timerRef.current)
         if (progressRef.current) clearInterval(progressRef.current)
@@ -97,46 +89,31 @@ export function FeaturedPrograms() {
     }
 
     if (loadingData) return (
-        <section className="py-12 md:py-24 bg-zinc-950 flex items-center justify-center" style={{ minHeight: '400px' }}>
+        <section className={`py-12 md:py-24 flex items-center justify-center transition-colors duration-300 ${isDark ? 'bg-zinc-950' : 'bg-gray-100'}`} style={{ minHeight: '400px' }}>
             <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
         </section>
     )
-
     if (promos.length === 0) return null
 
     return (
-        <section className="py-12 md:py-24 bg-zinc-950">
+        <section className={`py-12 md:py-24 transition-colors duration-300 ${isDark ? 'bg-zinc-950' : 'bg-gray-100'}`}>
             <div className="max-w-7xl mx-auto px-4 md:px-6">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
                     <div>
-                        <span className="inline-block bg-yellow-400/10 text-yellow-400 text-sm font-bold px-4 py-2 rounded-full mb-4 border border-yellow-400/20">
-                            Promo & Updates
-                        </span>
-                        <h2 className="text-3xl md:text-6xl font-black text-white">
-                            {"WHAT'S"}
-                            <span className="block text-yellow-400">HOT NOW</span>
+                        <span className="inline-block bg-yellow-400/10 text-yellow-500 text-sm font-bold px-4 py-2 rounded-full mb-4 border border-yellow-400/20">Promo & Updates</span>
+                        <h2 className={`text-3xl md:text-6xl font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {"WHAT'S"}<span className="block text-yellow-500">HOT NOW</span>
                         </h2>
                     </div>
-                    <p className="text-white/30 max-w-xs text-sm hidden md:block">
-                        Tap any card to explore. New promos every week.
-                    </p>
+                    <p className={`max-w-xs text-sm hidden md:block ${isDark ? 'text-white/30' : 'text-gray-400'}`}>Tap any card to explore. New promos every week.</p>
                 </div>
 
                 <div className="relative rounded-2xl md:rounded-3xl overflow-hidden" style={{ height: 'clamp(420px, 60vw, 560px)' }}>
                     {current.type === 'video' ? (
                         <div className="absolute inset-0">
-                            <video
-                                key={current.src}
-                                ref={videoRef}
-                                src={current.src}
-                                loop={false}
-                                muted={muted}
-                                playsInline
-                                autoPlay
-                                onPlay={() => setPlaying(true)}
-                                onPause={() => setPlaying(false)}
-                                className="w-full h-full object-cover"
-                            />
+                            <video key={current.src} ref={videoRef} src={current.src} loop={false} muted={muted} playsInline autoPlay
+                                onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
+                                className="w-full h-full object-cover" />
                         </div>
                     ) : (
                         <div className="absolute inset-0">
@@ -149,18 +126,12 @@ export function FeaturedPrograms() {
 
                     <div className="absolute inset-0 flex items-end p-5 md:p-10 z-10">
                         <div className="w-full md:max-w-xl">
-                            <span className="bg-yellow-400 text-black text-xs font-black px-3 py-1.5 rounded-full mb-3 inline-block">
-                                {current.badge}
-                            </span>
+                            <span className="bg-yellow-400 text-black text-xs font-black px-3 py-1.5 rounded-full mb-3 inline-block">{current.badge}</span>
                             <p className="text-yellow-400 text-xs font-black tracking-widest mb-2 flex items-center gap-1">
                                 <Tag className="w-3 h-3" /> {current.tag.toUpperCase()}
                             </p>
-                            <h3 className="text-2xl md:text-5xl font-black text-white mb-2 md:mb-4 leading-tight">
-                                {current.title}
-                            </h3>
-                            <p className="text-white/50 text-sm md:text-base leading-relaxed mb-4 line-clamp-2 md:line-clamp-none">
-                                {current.desc}
-                            </p>
+                            <h3 className="text-2xl md:text-5xl font-black text-white mb-2 md:mb-4 leading-tight">{current.title}</h3>
+                            <p className="text-white/50 text-sm md:text-base leading-relaxed mb-4 line-clamp-2 md:line-clamp-none">{current.desc}</p>
                             <a href={current.ctaLink} className="inline-flex items-center gap-2 bg-yellow-400 text-black px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-black text-sm hover:scale-105 transition-all">
                                 {current.cta} <ArrowRight className="w-4 h-4" />
                             </a>
