@@ -61,14 +61,6 @@ export function AboutHero() {
                         </p>
                     </div>
 
-                    <div className={fadeUp(v[4], 'flex gap-8')}>
-                        {[{ value: '100', label: 'Hours per batch' }, { value: '2020', label: 'Est. Jakarta' }, { value: '50K+', label: 'Bowls served' }].map(({ value, label }) => (
-                            <div key={label}>
-                                <p className="text-2xl font-black text-white">{value}</p>
-                                <p className="text-xs text-white/30 font-medium mt-0.5">{label}</p>
-                            </div>
-                        ))}
-                    </div>
 
                     <div className="absolute bottom-12 right-12 hidden md:block">
                         <div className="relative w-32 h-32">
@@ -127,14 +119,6 @@ export function AboutHero() {
                     </p>
                 </div>
 
-                <div className={fadeUp(v[4], 'flex gap-8')}>
-                    {[{ value: '100', label: 'Hours per batch' }, { value: '2020', label: 'Est. Jakarta' }, { value: '50K+', label: 'Bowls served' }].map(({ value, label }) => (
-                        <div key={label}>
-                            <p className="text-2xl font-black text-gray-900">{value}</p>
-                            <p className="text-xs text-gray-400 font-medium mt-0.5">{label}</p>
-                        </div>
-                    ))}
-                </div>
             </div>
 
             <div className="absolute bottom-12 right-12 hidden md:block">
