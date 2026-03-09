@@ -59,15 +59,6 @@ export function CareerHero() {
                             Be part of something obsessive. We are always looking for passionate people who love food as much as we do.
                         </p>
                     </div>
-
-                    <div className={fadeUp(v[4], 'flex gap-8')}>
-                        {[{ value: '5', label: 'Open positions' }, { value: '20+', label: 'Team members' }, { value: '2020', label: 'Est. Jakarta' }].map(({ value, label }) => (
-                            <div key={label}>
-                                <p className="text-2xl font-black text-white">{value}</p>
-                                <p className="text-xs text-white/30 font-medium mt-0.5">{label}</p>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </section>
         )
