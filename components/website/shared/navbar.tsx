@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Menu, X, Globe } from 'lucide-react'
 import Image from 'next/image'
@@ -20,6 +20,7 @@ export function Navbar() {
     const [scrolled, setScrolled] = useState(false)
     const [lang, setLang] = useState<'en' | 'id'>('en')
     const pathname = usePathname()
+    const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -27,16 +28,64 @@ export function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
+    // Detect current lang from GT cookie on mount so button state stays in sync after reload
+    useEffect(() => {
+        const gtCookie = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('googtrans='))
+        if (gtCookie) {
+            const val = gtCookie.split('=')[1] // e.g. "/en/id"
+            setLang(val && val.includes('/id') ? 'id' : 'en')
+        }
+    }, [])
+
+    useEffect(() => {
+        return () => {
+            if (retryRef.current) clearTimeout(retryRef.current)
+        }
+    }, [])
+
     const isActive = (href: string) =>
         href === '/' ? pathname === '/' : pathname.startsWith(href)
 
-    const switchLang = (target: 'en' | 'id') => {
-        setLang(target)
-        const select = document.querySelector('.goog-te-combo') as HTMLSelectElement
-        if (select) {
-            select.value = target
-            select.dispatchEvent(new Event('change'))
+    /** Switch to Indonesian via GT select element — retries until widget is ready */
+    const switchToID = (attempt = 0) => {
+        const MAX_RETRIES = 15
+        const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null
+
+        if (!select) {
+            if (attempt < MAX_RETRIES) {
+                retryRef.current = setTimeout(() => switchToID(attempt + 1), 300)
+            }
+            return
         }
+
+        if (retryRef.current) clearTimeout(retryRef.current)
+        select.value = 'id'
+        select.dispatchEvent(new Event('change', { bubbles: true }))
+        select.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+
+    /**
+     * Restore English by clearing the googtrans cookie then reloading.
+     * This is the only reliable cross-browser method — GT has no public API
+     * to programmatically "show original" without a page refresh.
+     */
+    const switchToEN = () => {
+        const clearCookie = (domain: string) => {
+            document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain}`
+        }
+        clearCookie(location.hostname)
+        clearCookie('.' + location.hostname)
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`
+        window.location.reload()
+    }
+
+    const switchLang = (target: 'en' | 'id') => {
+        if (target === lang) return
+        setLang(target)
+        if (target === 'id') switchToID()
+        else switchToEN()
     }
 
     return (
