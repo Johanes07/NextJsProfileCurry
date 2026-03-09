@@ -183,3 +183,29 @@ model AdminNavChild {
   updatedAt DateTime     @updatedAt
   @@schema("appcompany")
 }
+
+// ─── CTA SECTION ──────────────────────────────────────────
+// Tambahkan model ini ke schema.prisma yang sudah ada
+model CtaSection {
+  id           String   @id @default(cuid())
+
+  // Headline
+  badge        String   @default("COME FIND US")
+  headline1    String   @default("ONE BOWL.")
+  headline2    String   @default("FOREVER.")
+  description  String   @default("A curry so carefully crafted, one visit is all it takes to make you a regular.")
+
+  // Contact
+  address      String   @default("Jl. Kuliner No. 1, Jakarta Selatan")
+  hours        String   @default("Open Daily: 11:00 AM – 10:00 PM")
+  phone        String   @default("+62 21 1234 5678")
+  buttonLabel  String   @default("Get Directions")
+
+  // Feature cards (stored as JSON array)
+  features     Json     @default("[]")
+
+  updatedAt    DateTime @updatedAt
+
+  @@schema("appcompany")
+}
+
