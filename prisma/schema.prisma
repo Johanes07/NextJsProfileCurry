@@ -109,16 +109,6 @@ model SiteSettings {
   @@schema("appcompany")
 }
 
-model AboutContent {
-  id          String   @id @default(cuid())
-  story       String
-  founded     String
-  locations   String
-  bowlsServed String
-  imageUrl    String?
-  updatedAt   DateTime @updatedAt
-  @@schema("appcompany")
-}
 
 model TeamMember {
   id        String   @id @default(cuid())
@@ -209,3 +199,13 @@ model CtaSection {
   @@schema("appcompany")
 }
 
+model AboutHeroContent {
+  id           String   @id @default(cuid())
+  badgeText    String   @default("OUR STORY")
+  headingLine1 String   @default("ABOUT")
+  headingLine2 String   @default("100HOURS")
+  description  String   @default("Born from obsession. Driven by flavor. We believe the best things in life — and curry — cannot be rushed.")
+  imageUrl     String?  @default("/images/MAINDISH/AI8.png")
+  updatedAt    DateTime @updatedAt
+  @@schema("appcompany")
+}

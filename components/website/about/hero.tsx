@@ -5,11 +5,33 @@ import { Clock, ChefHat } from 'lucide-react'
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
 
+// ─── Types ─────────────────────────────────────────────────
+interface AboutHeroData {
+    badgeText: string
+    headingLine1: string
+    headingLine2: string
+    description: string
+    imageUrl: string
+}
+
+const DEFAULT: AboutHeroData = {
+    badgeText: 'OUR STORY',
+    headingLine1: 'ABOUT',
+    headingLine2: '100HOURS',
+    description:
+        'Born from obsession. Driven by flavor. We believe the best things in life — and curry — cannot be rushed.',
+    imageUrl: '/images/MAINDISH/AI8.png',
+}
+
+// ─── Stagger animation ─────────────────────────────────────
 function useStagger(count: number, delay = 130, startDelay = 120) {
     const [v, setV] = useState<boolean[]>(Array(count).fill(false))
     useEffect(() => {
         const timers = Array.from({ length: count }, (_, i) =>
-            setTimeout(() => setV(prev => { const n = [...prev]; n[i] = true; return n }), startDelay + i * delay)
+            setTimeout(
+                () => setV(prev => { const n = [...prev]; n[i] = true; return n }),
+                startDelay + i * delay
+            )
         )
         return () => timers.forEach(clearTimeout)
     }, [])
@@ -19,19 +41,51 @@ function useStagger(count: number, delay = 130, startDelay = 120) {
 const fadeUp = (visible: boolean, extra = '') =>
     `transition-all duration-700 ease-out ${extra} ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`
 
+// ─── Component ─────────────────────────────────────────────
 export function AboutHero() {
     const [mounted, setMounted] = useState(false)
+    const [data, setData] = useState<AboutHeroData>(DEFAULT)
     const { resolvedTheme } = useTheme()
+
     useEffect(() => { setMounted(true) }, [])
+
+    // Fetch CMS data
+    useEffect(() => {
+        fetch('/api/admin/about-hero')
+            .then(r => r.json())
+            .then((d: Partial<AboutHeroData> & { updatedAt?: string }) => {
+                // Append cache-busting param so browser always loads latest image
+                const rawUrl = d.imageUrl || DEFAULT.imageUrl
+                const bust = d.updatedAt ? `?v=${new Date(d.updatedAt).getTime()}` : ''
+                setData({
+                    badgeText: d.badgeText || DEFAULT.badgeText,
+                    headingLine1: d.headingLine1 || DEFAULT.headingLine1,
+                    headingLine2: d.headingLine2 || DEFAULT.headingLine2,
+                    description: d.description || DEFAULT.description,
+                    imageUrl: rawUrl + bust,
+                })
+            })
+            .catch(() => {
+                // Silently fallback to DEFAULT if API fails
+            })
+    }, [])
+
     const isDark = mounted ? resolvedTheme === 'dark' : true
     const v = useStagger(5)
 
-    // ── DARK MODE (original, unchanged) ─────────────────────────
+    // ── DARK MODE ───────────────────────────────────────────────
     if (!mounted || isDark) {
         return (
             <section className="relative min-h-[70vh] overflow-hidden bg-black flex items-center">
                 <div className="absolute inset-0">
-                    <Image src="/images/MAINDISH/AI8.png" alt="About Hero" fill className="object-cover opacity-50" priority />
+                    <Image
+                        src={data.imageUrl}
+                        alt="About Hero"
+                        fill
+                        className="object-cover opacity-50"
+                        priority
+                        unoptimized
+                    />
                     <div className="absolute inset-0 bg-gradient-to-br from-black via-black/80 to-black/60" />
                 </div>
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-yellow-400/5 rounded-full blur-3xl" />
@@ -40,13 +94,16 @@ export function AboutHero() {
                     <div className={fadeUp(v[0], 'mb-8 inline-flex')}>
                         <div className="inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-4 py-2">
                             <ChefHat className="w-4 h-4 text-yellow-400" />
-                            <span className="text-yellow-400 text-sm font-bold tracking-wider">OUR STORY</span>
+                            <span className="text-yellow-400 text-sm font-bold tracking-wider">
+                                {data.badgeText}
+                            </span>
                         </div>
                     </div>
 
                     <div className={fadeUp(v[1], 'mb-6')}>
                         <h1 className="text-6xl md:text-8xl font-black text-white leading-none">
-                            ABOUT<span className="block text-yellow-400">100HOURS</span>
+                            {data.headingLine1}
+                            <span className="block text-yellow-400">{data.headingLine2}</span>
                         </h1>
                     </div>
 
@@ -57,10 +114,9 @@ export function AboutHero() {
 
                     <div className={fadeUp(v[3], 'mb-10')}>
                         <p className="text-white/50 text-xl max-w-2xl leading-relaxed">
-                            Born from obsession. Driven by flavor. We believe the best things in life — and curry — cannot be rushed.
+                            {data.description}
                         </p>
                     </div>
-
 
                     <div className="absolute bottom-12 right-12 hidden md:block">
                         <div className="relative w-32 h-32">
@@ -82,13 +138,20 @@ export function AboutHero() {
         )
     }
 
-    // ── LIGHT MODE ───────────────────────────────────────────────
+    // ── LIGHT MODE ──────────────────────────────────────────────
     return (
         <section className="relative min-h-[70vh] overflow-hidden bg-amber-50 flex items-center">
             <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-yellow-400/20 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
             <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-orange-300/20 rounded-full blur-3xl" />
             <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden md:block">
-                <Image src="/images/MAINDISH/AI8.png" alt="About Hero" fill className="object-cover object-center opacity-100" priority />
+                <Image
+                    src={data.imageUrl}
+                    alt="About Hero"
+                    fill
+                    className="object-cover object-center opacity-100"
+                    priority
+                    unoptimized
+                />
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-amber-50/70 to-transparent" />
             </div>
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-yellow-400 to-transparent" />
@@ -97,14 +160,16 @@ export function AboutHero() {
                 <div className={fadeUp(v[0], 'mb-8 inline-flex')}>
                     <div className="inline-flex items-center gap-2 bg-yellow-400 rounded-full px-4 py-2 shadow-lg shadow-yellow-400/30">
                         <ChefHat className="w-4 h-4 text-black" />
-                        <span className="text-black text-sm font-black tracking-wider">OUR STORY</span>
+                        <span className="text-black text-sm font-black tracking-wider">
+                            {data.badgeText}
+                        </span>
                     </div>
                 </div>
 
                 <div className={fadeUp(v[1], 'mb-6')}>
                     <h1 className="text-6xl md:text-8xl font-black leading-none">
-                        <span className="text-gray-900">ABOUT</span>
-                        <span className="block text-yellow-500">100HOURS</span>
+                        <span className="text-gray-900">{data.headingLine1}</span>
+                        <span className="block text-yellow-500">{data.headingLine2}</span>
                     </h1>
                 </div>
 
@@ -115,10 +180,9 @@ export function AboutHero() {
 
                 <div className={fadeUp(v[3], 'mb-10')}>
                     <p className="text-gray-500 text-xl max-w-xl leading-relaxed">
-                        Born from obsession. Driven by flavor. We believe the best things in life — and curry — cannot be rushed.
+                        {data.description}
                     </p>
                 </div>
-
             </div>
 
             <div className="absolute bottom-12 right-12 hidden md:block">
