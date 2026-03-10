@@ -110,18 +110,7 @@ model SiteSettings {
 }
 
 
-model TeamMember {
-  id        String   @id @default(cuid())
-  name      String
-  role      String
-  bio       String
-  imageUrl  String?
-  order     Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@schema("appcompany")
-}
+
 
 // ─── HERO CONTENT ─────────────────────────────────────────
 model HeroContent {
@@ -243,5 +232,32 @@ model OurStoryContent {
   imageUrl     String?  @default("/images/MAINDISH/AI1.png")
 
   updatedAt    DateTime @updatedAt
+  @@schema("appcompany")
+}
+
+
+model OurValuesContent {
+  id           String   @id @default(cuid())
+  badge        String   @default("What We Stand For")
+  headingLine1 String   @default("OUR")
+  headingLine2 String   @default("VALUES")
+  values       Json     @default("[]")
+  updatedAt    DateTime @updatedAt
+  @@schema("appcompany")
+}
+
+model TeamSectionMeta {
+  id              String   @id @default(cuid())
+  badge           String   @default("The People Behind The Curry")
+  headingLine1    String   @default("MEET THE")
+  headingLine2    String   @default("TEAM")
+  heroImage       String   @default("/images/chef.jpg")
+  heroTagline1    String   @default("The People Who Make")
+  heroTagline2    String   @default("Every Bowl Perfect")
+  ctaTitle        String   @default("JOIN OUR TEAM")
+  ctaDesc         String   @default("Passionate about food? We're always looking for talented people who share our obsession.")
+  ctaButtonLabel  String   @default("Get In Touch")
+  ctaButtonLink   String   @default("/contact")
+  updatedAt       DateTime @updatedAt
   @@schema("appcompany")
 }
