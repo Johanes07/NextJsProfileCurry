@@ -105,10 +105,11 @@ export default function NavCMSPage() {
         load()
     }
 
+    // ✅ FIX: pakai parentId di URL
     const handleUpdateChild = async () => {
         if (!editChild) return
         setSaving(true)
-        await fetch(`/api/admin/nav/children/${editChild.child.id}`, {
+        await fetch(`/api/admin/nav/${editChild.parentId}/children/${editChild.child.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(editChild.child)
@@ -124,9 +125,10 @@ export default function NavCMSPage() {
         load()
     }
 
-    const handleDeleteChild = async (id: string) => {
+    // ✅ FIX: terima parentId, pakai di URL
+    const handleDeleteChild = async (parentId: string, childId: string) => {
         if (!confirm('Hapus sub-menu ini?')) return
-        await fetch(`/api/admin/nav/children/${id}`, { method: 'DELETE' })
+        await fetch(`/api/admin/nav/${parentId}/children/${childId}`, { method: 'DELETE' })
         load()
     }
 
@@ -276,7 +278,8 @@ export default function NavCMSPage() {
                                                                 className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center hover:bg-yellow-400/10 hover:text-yellow-400 text-white/40 transition-all">
                                                                 <Edit2 className="w-3.5 h-3.5" />
                                                             </button>
-                                                            <button onClick={() => handleDeleteChild(child.id)}
+                                                            {/* ✅ FIX: kirim parentId */}
+                                                            <button onClick={() => handleDeleteChild(item.id, child.id)}
                                                                 className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center hover:bg-red-400/10 hover:text-red-400 text-white/40 transition-all">
                                                                 <Trash2 className="w-3.5 h-3.5" />
                                                             </button>
@@ -477,6 +480,12 @@ export default function NavCMSPage() {
                                     onChange={e => setEditChild(p => p ? { ...p, child: { ...p.child, href: e.target.value } } : null)}
                                     placeholder="/dashboard/..."
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-yellow-400/50" />
+                            </div>
+                            <div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">
+                                <input type="checkbox" id="editChildActive" checked={editChild.child.isActive}
+                                    onChange={e => setEditChild(p => p ? { ...p, child: { ...p.child, isActive: e.target.checked } } : null)}
+                                    className="accent-yellow-400 w-4 h-4" />
+                                <label htmlFor="editChildActive" className="text-white text-sm font-bold cursor-pointer">Aktif (tampil di sidebar)</label>
                             </div>
                         </div>
                         <div className="p-6 border-t border-white/5 flex gap-3">

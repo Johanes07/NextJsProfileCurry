@@ -18,8 +18,7 @@ const DEFAULT: AboutHeroData = {
     badgeText: 'OUR STORY',
     headingLine1: 'ABOUT',
     headingLine2: '100HOURS',
-    description:
-        'Born from obsession. Driven by flavor. We believe the best things in life — and curry — cannot be rushed.',
+    description: 'Born from obsession. Driven by flavor. We believe the best things in life — and curry — cannot be rushed.',
     imageUrl: '/images/MAINDISH/AI8.png',
 }
 
@@ -41,22 +40,49 @@ function useStagger(count: number, delay = 130, startDelay = 120) {
 const fadeUp = (visible: boolean, extra = '') =>
     `transition-all duration-700 ease-out ${extra} ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`
 
+// ─── Skeleton ───────────────────────────────────────────────
+function HeroSkeleton() {
+    return (
+        <section className="relative min-h-[70vh] overflow-hidden bg-black flex items-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-black/20" />
+            <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 w-full">
+                <div className="mb-8">
+                    <div className="h-8 w-32 bg-white/10 rounded-full animate-pulse" />
+                </div>
+                <div className="mb-6 space-y-3">
+                    <div className="h-16 md:h-24 w-64 bg-white/10 rounded-xl animate-pulse" />
+                    <div className="h-16 md:h-24 w-80 bg-yellow-400/20 rounded-xl animate-pulse" />
+                </div>
+                <div className="mb-6 flex items-center gap-4">
+                    <div className="h-1 w-16 bg-white/10 rounded-full animate-pulse" />
+                    <div className="h-1 w-8 bg-white/10 rounded-full animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                    <div className="h-4 w-96 bg-white/10 rounded-full animate-pulse" />
+                    <div className="h-4 w-72 bg-white/10 rounded-full animate-pulse" />
+                </div>
+            </div>
+        </section>
+    )
+}
+
 // ─── Component ─────────────────────────────────────────────
 export function AboutHero() {
     const [mounted, setMounted] = useState(false)
-    const [data, setData] = useState<AboutHeroData>(DEFAULT)
+    const [data, setData] = useState<AboutHeroData | null>(null) // null = belum load
+    const [imgReady, setImgReady] = useState(false)
     const { resolvedTheme } = useTheme()
 
     useEffect(() => { setMounted(true) }, [])
 
-    // Fetch CMS data
+    // Fetch CMS data — null dulu, baru set setelah dapat data
     useEffect(() => {
-        fetch('/api/admin/about-hero')
+        fetch('/api/admin/about-hero', { cache: 'no-store' })
             .then(r => r.json())
             .then((d: Partial<AboutHeroData> & { updatedAt?: string }) => {
-                // Append cache-busting param so browser always loads latest image
-                const rawUrl = d.imageUrl || DEFAULT.imageUrl
-                const bust = d.updatedAt ? `?v=${new Date(d.updatedAt).getTime()}` : ''
+                const rawUrl = (d.imageUrl || DEFAULT.imageUrl).split('?')[0]
+                const bust = `?v=${d.updatedAt ? new Date(d.updatedAt).getTime() : Date.now()}`
                 setData({
                     badgeText: d.badgeText || DEFAULT.badgeText,
                     headingLine1: d.headingLine1 || DEFAULT.headingLine1,
@@ -65,26 +91,30 @@ export function AboutHero() {
                     imageUrl: rawUrl + bust,
                 })
             })
-            .catch(() => {
-                // Silently fallback to DEFAULT if API fails
-            })
+            .catch(() => setData(DEFAULT))
     }, [])
 
     const isDark = mounted ? resolvedTheme === 'dark' : true
     const v = useStagger(5)
+
+    // Tampilkan skeleton sampai data CMS ready
+    if (!data) return <HeroSkeleton />
 
     // ── DARK MODE ───────────────────────────────────────────────
     if (!mounted || isDark) {
         return (
             <section className="relative min-h-[70vh] overflow-hidden bg-black flex items-center">
                 <div className="absolute inset-0">
+                    {/* Placeholder gelap saat gambar belum selesai load */}
+                    <div className={`absolute inset-0 bg-zinc-900 transition-opacity duration-700 ${imgReady ? 'opacity-0' : 'opacity-100'}`} />
                     <Image
                         src={data.imageUrl}
                         alt="About Hero"
                         fill
-                        className="object-cover opacity-50"
+                        className={`object-cover transition-opacity duration-700 ${imgReady ? 'opacity-50' : 'opacity-0'}`}
                         priority
                         unoptimized
+                        onLoad={() => setImgReady(true)}
                     />
                     <div className="absolute inset-0 bg-gradient-to-br from-black via-black/80 to-black/60" />
                 </div>
@@ -144,13 +174,15 @@ export function AboutHero() {
             <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-yellow-400/20 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
             <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-orange-300/20 rounded-full blur-3xl" />
             <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden md:block">
+                <div className={`absolute inset-0 bg-amber-100 transition-opacity duration-700 ${imgReady ? 'opacity-0' : 'opacity-100'}`} />
                 <Image
                     src={data.imageUrl}
                     alt="About Hero"
                     fill
-                    className="object-cover object-center opacity-100"
+                    className={`object-cover object-center transition-opacity duration-700 ${imgReady ? 'opacity-100' : 'opacity-0'}`}
                     priority
                     unoptimized
+                    onLoad={() => setImgReady(true)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-amber-50/70 to-transparent" />
             </div>
