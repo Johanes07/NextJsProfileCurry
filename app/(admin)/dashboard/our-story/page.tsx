@@ -166,7 +166,7 @@ export default function OurStoryCMSPage() {
         try {
             const fd = new FormData()
             fd.append('file', file)
-            const res = await fetch('/api/admin/our-story/upload', { method: 'POST', body: fd })
+            const res = await fetch('/api/upload?folder=our-story', { method: 'POST', body: fd })
             if (!res.ok) throw new Error()
             const { url } = await res.json()
             setData(f => ({ ...f, imageUrl: url }))

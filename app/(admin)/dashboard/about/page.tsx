@@ -165,7 +165,7 @@ export default function AboutHeroCMSPage() {
         try {
             const fd = new FormData()
             fd.append('file', file)
-            const res = await fetch('/api/admin/about-hero/upload', { method: 'POST', body: fd })
+            const res = await fetch('/api/upload?folder=about-hero', { method: 'POST', body: fd })
             if (!res.ok) throw new Error()
             const { url } = await res.json()
             setData(f => ({ ...f, imageUrl: url }))
