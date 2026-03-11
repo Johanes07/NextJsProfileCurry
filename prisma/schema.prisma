@@ -272,3 +272,14 @@ model MenuHeroContent {
   updatedAt   DateTime @updatedAt
   @@schema("appcompany")
 }
+
+model ContactHeroContent {
+  id           String   @id @default(cuid())
+  badgeText    String   @default("FIND US")
+  headingLine1 String   @default("GET IN")
+  headingLine2 String   @default("TOUCH")
+  subtitle     String   @default("Have a question? Want to reserve a table? We would love to hear from you.")
+  imageUrl     String?  @default("/images/MAINDISH/AI3.png")
+  updatedAt    DateTime @updatedAt
+  @@schema("appcompany")
+}
