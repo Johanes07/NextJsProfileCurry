@@ -35,29 +35,79 @@ const DEFAULT: ContactHeroData = {
     imageUrl: '/images/MAINDISH/AI3.png',
 }
 
+// ── Skeleton ────────────────────────────────────────────────
+function HeroSkeleton() {
+    return (
+        <section className="relative min-h-[60vh] overflow-hidden bg-black flex items-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/20" />
+            <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 w-full">
+                <div className="mb-8">
+                    <div className="h-8 w-28 bg-white/10 rounded-full animate-pulse" />
+                </div>
+                <div className="mb-6 space-y-3">
+                    <div className="h-16 md:h-24 w-56 bg-white/10 rounded-xl animate-pulse" />
+                    <div className="h-16 md:h-24 w-72 bg-yellow-400/20 rounded-xl animate-pulse" />
+                </div>
+                <div className="mb-6 flex items-center gap-4">
+                    <div className="h-1 w-16 bg-white/10 rounded-full animate-pulse" />
+                    <div className="h-1 w-8 bg-white/10 rounded-full animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                    <div className="h-4 w-96 bg-white/10 rounded-full animate-pulse" />
+                    <div className="h-4 w-72 bg-white/10 rounded-full animate-pulse" />
+                </div>
+            </div>
+        </section>
+    )
+}
+
 export function ContactHero() {
     const [mounted, setMounted] = useState(false)
-    const [data, setData] = useState<ContactHeroData>(DEFAULT)
+    const [data, setData] = useState<ContactHeroData | null>(null) // null = belum load
+    const [imgReady, setImgReady] = useState(false)
     const { resolvedTheme } = useTheme()
 
     useEffect(() => { setMounted(true) }, [])
 
     useEffect(() => {
-        fetch('/api/admin/contact/hero')
+        fetch('/api/admin/contact/hero', { cache: 'no-store' })
             .then(r => r.json())
-            .then(d => setData(d))
-            .catch(() => {/* fallback ke DEFAULT */ })
+            .then((d: Partial<ContactHeroData> & { updatedAt?: string }) => {
+                const rawUrl = (d.imageUrl || DEFAULT.imageUrl).split('?')[0]
+                const bust = `?v=${d.updatedAt ? new Date(d.updatedAt).getTime() : Date.now()}`
+                setData({
+                    badgeText: d.badgeText || DEFAULT.badgeText,
+                    headingLine1: d.headingLine1 || DEFAULT.headingLine1,
+                    headingLine2: d.headingLine2 || DEFAULT.headingLine2,
+                    subtitle: d.subtitle || DEFAULT.subtitle,
+                    imageUrl: rawUrl + bust,
+                })
+            })
+            .catch(() => setData(DEFAULT))
     }, [])
 
     const isDark = mounted ? resolvedTheme === 'dark' : true
     const v = useStagger(4)
+
+    // Tampilkan skeleton sampai data CMS ready
+    if (!data) return <HeroSkeleton />
 
     // ── DARK MODE ────────────────────────────────────────────────
     if (!mounted || isDark) {
         return (
             <section className="relative min-h-[60vh] overflow-hidden bg-black flex items-center">
                 <div className="absolute inset-0">
-                    <Image src={data.imageUrl} alt="Contact Hero" fill className="object-cover opacity-50" priority />
+                    <div className={`absolute inset-0 bg-zinc-900 transition-opacity duration-700 ${imgReady ? 'opacity-0' : 'opacity-100'}`} />
+                    <Image
+                        src={data.imageUrl}
+                        alt="Contact Hero"
+                        fill
+                        className={`object-cover transition-opacity duration-700 ${imgReady ? 'opacity-50' : 'opacity-0'}`}
+                        priority
+                        unoptimized
+                        onLoad={() => setImgReady(true)}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black" />
                 </div>
 
@@ -97,7 +147,16 @@ export function ContactHero() {
             <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-yellow-400/20 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/3" />
             <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-orange-300/20 rounded-full blur-3xl" />
             <div className="absolute right-0 top-0 bottom-0 w-1/2 hidden md:block">
-                <Image src={data.imageUrl} alt="Contact Hero" fill className="object-cover object-center opacity-100" priority />
+                <div className={`absolute inset-0 bg-amber-100 transition-opacity duration-700 ${imgReady ? 'opacity-0' : 'opacity-100'}`} />
+                <Image
+                    src={data.imageUrl}
+                    alt="Contact Hero"
+                    fill
+                    className={`object-cover object-center transition-opacity duration-700 ${imgReady ? 'opacity-100' : 'opacity-0'}`}
+                    priority
+                    unoptimized
+                    onLoad={() => setImgReady(true)}
+                />
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-amber-50/60 to-transparent" />
             </div>
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-yellow-400 to-transparent" />
