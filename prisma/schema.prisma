@@ -74,6 +74,7 @@ model JobPosition {
   desc         String
   requirements String[]
   isActive     Boolean  @default(true)
+  hrdEmail     String   @default("")   // ← tambah ini
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   @@schema("appcompany")
@@ -327,4 +328,54 @@ model CareerHeroContent {
   @@schema("appcompany")
 }
 
+model JobApplication {
+  id String @id @default(cuid())
+
+  // Posisi
+  positionId    String?
+  positionTitle String
+
+  // Data Pribadi
+  namaLengkap     String
+  alamatKTP       String
+  alamatDomisili  String
+  email           String
+  tempatLahir     String
+  tanggalLahir    String
+  usia            String
+  anakKe          String  @default("")
+  dariSaudara     String  @default("")
+  nik             String
+  agama           String
+  golDarah        String
+  jenisKelamin    String
+  noTelp          String
+  kondisiMata     String
+  tinggiBadan     String
+  beratBadan      String
+  pendidikan      String
+  lulusTahun      String
+  statusNikah     String
+  bersediaShift   String
+  puyaTindikTato  String
+  perokok         String
+  riwayatPenyakit String  @default("")
+
+  // JSON arrays
+  pengalamanKerja Json @default("[]") // [{perusahaan, posisi, dari, sampai, alasanKeluar}]
+  seminarKursus   Json @default("[]") // [{nama, tahun, penyelenggara}]
+  organisasi      Json @default("[]") // [{nama, jabatan, tahun}]
+
+  // Files — simpan nama file saja (attach ke email)
+  cvFileName    String?
+  fotoFileName  String?
+  cvData        Bytes?   // binary file untuk dikirim via email
+  fotoData      Bytes?
+
+  // Meta
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@schema("appcompany")
+}
 

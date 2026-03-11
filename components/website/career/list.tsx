@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { MapPin, Clock, ArrowUpRight, X, CheckCircle, ChevronRight, Loader2, Send } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { MapPin, Clock, ArrowUpRight, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useRouter } from 'next/navigation'
 
 // ── Types ─────────────────────────────────────────────────────
 interface JobPosition {
@@ -28,89 +29,10 @@ const DEPT_STYLES: Record<string, { card: string; badge: string; dot: string }> 
 const getDeptStyle = (dept: string) =>
     DEPT_STYLES[dept] ?? { card: 'from-yellow-400/5', badge: 'bg-yellow-400/10 text-yellow-400 border-yellow-400/20', dot: 'bg-yellow-400' }
 
-// ── Apply Form ────────────────────────────────────────────────
-function ApplyForm({ job, onClose, isDark }: { job: JobPosition; onClose: () => void; isDark: boolean }) {
-    const [form, setForm] = useState({ name: '', email: '', phone: '', portfolio: '', message: '' })
-    const [submitting, setSubmitting] = useState(false)
-    const [done, setDone] = useState(false)
-
-    const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-        setForm(prev => ({ ...prev, [k]: e.target.value }))
-
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
-        setSubmitting(true)
-        // Simulate submit — ganti dengan fetch('/api/admin/career/apply', ...) jika ada endpoint
-        await new Promise(r => setTimeout(r, 1200))
-        setSubmitting(false)
-        setDone(true)
-    }
-
-    const inp = `w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200
-        ${isDark
-            ? 'bg-zinc-900 border-zinc-700/60 text-white placeholder-zinc-600 focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/10'
-            : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-yellow-400/60 focus:ring-2 focus:ring-yellow-400/10'}`
-
-    if (done) return (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-5">
-                <CheckCircle className="w-8 h-8 text-yellow-400" />
-            </div>
-            <h3 className={`text-2xl font-black mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Application Sent!</h3>
-            <p className={`text-sm max-w-xs ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
-                Thanks! We will review your application for <span className="text-yellow-500 font-bold">{job.title}</span> and get back to you soon.
-            </p>
-            <button onClick={onClose} className="mt-6 text-yellow-500 text-sm font-bold hover:underline">Close</button>
-        </div>
-    )
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                    <label className={`block text-xs font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>Full Name *</label>
-                    <input type="text" required placeholder="John Doe" value={form.name} onChange={set('name')} className={inp} />
-                </div>
-                <div>
-                    <label className={`block text-xs font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>Email *</label>
-                    <input type="email" required placeholder="john@email.com" value={form.email} onChange={set('email')} className={inp} />
-                </div>
-                <div>
-                    <label className={`block text-xs font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>Phone</label>
-                    <input type="tel" placeholder="+62 812..." value={form.phone} onChange={set('phone')} className={inp} />
-                </div>
-                <div className="col-span-2">
-                    <label className={`block text-xs font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>LinkedIn / Portfolio</label>
-                    <input type="text" placeholder="https://..." value={form.portfolio} onChange={set('portfolio')} className={inp} />
-                </div>
-                <div className="col-span-2">
-                    <label className={`block text-xs font-bold uppercase tracking-widest mb-1.5 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>Why join us? *</label>
-                    <textarea required rows={3} placeholder="Tell us why you'd be a great fit..." value={form.message} onChange={set('message')}
-                        className={inp + ' resize-none'} />
-                </div>
-            </div>
-            <div className="flex gap-3 pt-1">
-                <button type="submit" disabled={submitting}
-                    className="flex-1 flex items-center justify-center gap-2 bg-yellow-400 text-black py-3.5 rounded-xl font-black text-sm
-                        hover:bg-yellow-300 hover:scale-[1.02] disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed transition-all shadow-lg shadow-yellow-400/20">
-                    {submitting
-                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
-                        : <><Send className="w-4 h-4" /> Submit Application</>}
-                </button>
-                <button type="button" onClick={onClose}
-                    className={`px-5 rounded-xl font-bold text-sm border transition-all
-                        ${isDark ? 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600'}`}>
-                    Cancel
-                </button>
-            </div>
-        </form>
-    )
-}
-
 // ── Job Modal ─────────────────────────────────────────────────
 function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => void; isDark: boolean }) {
-    const [tab, setTab] = useState<'detail' | 'apply'>('detail')
     const style = getDeptStyle(job.dept)
+    const router = useRouter()
 
     useEffect(() => {
         document.body.style.overflow = 'hidden'
@@ -118,6 +40,11 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
         window.addEventListener('keydown', onKey)
         return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey) }
     }, [onClose])
+
+    function handleApply() {
+        onClose()
+        router.push(`/career/apply?position=${encodeURIComponent(job.title)}&id=${job.id}`)
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -129,8 +56,8 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
                 ${isDark ? 'bg-zinc-950 border border-zinc-800/60' : 'bg-white border border-gray-100'}`}>
 
                 {/* Header */}
-                <div className={`px-6 pt-6 pb-0 shrink-0 border-b ${isDark ? 'border-zinc-800/60' : 'border-gray-100'}`}>
-                    <div className="flex items-start justify-between mb-4">
+                <div className={`px-6 pt-6 pb-5 shrink-0 border-b ${isDark ? 'border-zinc-800/60' : 'border-gray-100'}`}>
+                    <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0 pr-4">
                             <div className="flex flex-wrap gap-2 mb-3">
                                 <span className={`text-xs font-bold px-3 py-1 rounded-full border ${style.badge}`}>{job.dept}</span>
@@ -151,53 +78,32 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
                             <X className="w-4 h-4" />
                         </button>
                     </div>
-
-                    {/* Tabs */}
-                    <div className="flex gap-1 -mb-px">
-                        {(['detail', 'apply'] as const).map(t => (
-                            <button key={t} onClick={() => setTab(t)}
-                                className={`px-5 py-2.5 text-sm font-bold rounded-t-xl transition-all capitalize
-                                    ${tab === t
-                                        ? isDark
-                                            ? 'bg-zinc-900 text-yellow-400 border border-b-zinc-900 border-zinc-800/60'
-                                            : 'bg-white text-yellow-600 border border-b-white border-gray-100'
-                                        : isDark
-                                            ? 'text-zinc-500 hover:text-zinc-300'
-                                            : 'text-gray-400 hover:text-gray-600'}`}>
-                                {t === 'detail' ? 'Job Details' : 'Apply Now'}
-                            </button>
-                        ))}
-                    </div>
                 </div>
 
                 {/* Body */}
                 <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-zinc-950' : 'bg-white'}`}>
-                    {tab === 'detail' ? (
-                        <div className="space-y-6">
-                            <div>
-                                <p className={`text-sm font-bold uppercase tracking-widest mb-3 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>About the Role</p>
-                                <p className={`leading-relaxed ${isDark ? 'text-zinc-300' : 'text-gray-600'}`}>{job.desc}</p>
-                            </div>
-                            <div>
-                                <p className={`text-sm font-bold uppercase tracking-widest mb-3 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>Requirements</p>
-                                <ul className="space-y-2.5">
-                                    {job.requirements.map((r, i) => (
-                                        <li key={i} className={`flex items-start gap-3 text-sm ${isDark ? 'text-zinc-300' : 'text-gray-600'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${style.dot}`} />
-                                            {r}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            <button onClick={() => setTab('apply')}
-                                className="w-full flex items-center justify-center gap-2 bg-yellow-400 text-black py-4 rounded-2xl font-black text-sm
-                                    hover:bg-yellow-300 hover:scale-[1.01] transition-all shadow-lg shadow-yellow-400/20">
-                                Apply for this Position <ArrowUpRight className="w-4 h-4" />
-                            </button>
+                    <div className="space-y-6">
+                        <div>
+                            <p className={`text-sm font-bold uppercase tracking-widest mb-3 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>About the Role</p>
+                            <p className={`leading-relaxed ${isDark ? 'text-zinc-300' : 'text-gray-600'}`}>{job.desc}</p>
                         </div>
-                    ) : (
-                        <ApplyForm job={job} onClose={onClose} isDark={isDark} />
-                    )}
+                        <div>
+                            <p className={`text-sm font-bold uppercase tracking-widest mb-3 ${isDark ? 'text-zinc-400' : 'text-gray-400'}`}>Requirements</p>
+                            <ul className="space-y-2.5">
+                                {job.requirements.map((r, i) => (
+                                    <li key={i} className={`flex items-start gap-3 text-sm ${isDark ? 'text-zinc-300' : 'text-gray-600'}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${style.dot}`} />
+                                        {r}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <button onClick={handleApply}
+                            className="w-full flex items-center justify-center gap-2 bg-yellow-400 text-black py-4 rounded-2xl font-black text-sm
+                                hover:bg-yellow-300 hover:scale-[1.01] transition-all shadow-lg shadow-yellow-400/20">
+                            Apply for this Position <ArrowUpRight className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -329,7 +235,7 @@ export function CareerList() {
                                             : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'}`}>
                                 {d}
                                 {d !== 'All' && (
-                                    <span className={`ml-1.5 opacity-60`}>
+                                    <span className="ml-1.5 opacity-60">
                                         {jobs.filter(j => j.dept === d).length}
                                     </span>
                                 )}

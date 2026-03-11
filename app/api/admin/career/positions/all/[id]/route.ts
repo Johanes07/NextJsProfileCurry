@@ -16,6 +16,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
                 desc: data.desc,
                 requirements: data.requirements?.filter((r: string) => r.trim()) ?? [],
                 isActive: data.isActive,
+                hrdEmail: data.hrdEmail ?? '',
             }
         })
         return NextResponse.json(position)

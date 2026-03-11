@@ -26,6 +26,7 @@ export async function POST(req: Request) {
                 desc: data.desc,
                 requirements: data.requirements?.filter((r: string) => r.trim()) ?? [],
                 isActive: data.isActive ?? true,
+                hrdEmail: data.hrdEmail ?? '',
             }
         })
         return NextResponse.json(position)

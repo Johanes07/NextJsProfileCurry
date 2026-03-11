@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import {
     Briefcase, Plus, Save, Trash2, X, CheckCircle, AlertCircle,
-    RefreshCw, ChevronDown, ChevronUp, GripVertical, Eye, EyeOff, Loader2
+    Eye, EyeOff, Loader2, Mail
 } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -16,11 +16,12 @@ interface JobPosition {
     desc: string
     requirements: string[]
     isActive: boolean
+    hrdEmail: string
 }
 
 const EMPTY_JOB = (): JobPosition => ({
     title: '', dept: '', type: 'Full Time', location: 'Jakarta Selatan',
-    desc: '', requirements: [''], isActive: true,
+    desc: '', requirements: [''], isActive: true, hrdEmail: '',
 })
 
 const DEPT_OPTIONS = ['Kitchen', 'Operations', 'Front of House', 'Marketing', 'Finance', 'Technology', 'HR']
@@ -51,9 +52,9 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
 const inputCls = 'w-full bg-zinc-900 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-zinc-600 focus:outline-none focus:border-yellow-400/60 focus:ring-2 focus:ring-yellow-400/10 transition-all'
 const labelCls = 'block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5'
 
-function Field({ label, value, onChange, placeholder, textarea }: {
+function Field({ label, value, onChange, placeholder, textarea, type = 'text', hint }: {
     label: string; value: string; onChange: (v: string) => void
-    placeholder?: string; textarea?: boolean
+    placeholder?: string; textarea?: boolean; type?: string; hint?: string
 }) {
     return (
         <div>
@@ -61,8 +62,9 @@ function Field({ label, value, onChange, placeholder, textarea }: {
             {textarea
                 ? <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
                     rows={3} className={inputCls + ' resize-none'} />
-                : <input type="text" value={value} onChange={e => onChange(e.target.value)}
+                : <input type={type} value={value} onChange={e => onChange(e.target.value)}
                     placeholder={placeholder} className={inputCls} />}
+            {hint && <p className="text-xs text-zinc-600 mt-1.5">{hint}</p>}
         </div>
     )
 }
@@ -86,7 +88,9 @@ function SelectField({ label, value, onChange, options }: {
                 <button type="button" onClick={() => setOpen(p => !p)}
                     className={`${inputCls} flex items-center justify-between text-left ${!value ? 'text-zinc-600' : 'text-white'}`}>
                     <span>{value || 'Pilih...'}</span>
-                    <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${open ? 'rotate-180' : ''}`} />
+                    <svg className={`w-4 h-4 text-zinc-500 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                 </button>
                 {open && (
                     <div className="absolute z-20 w-full mt-1 bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden shadow-xl">
@@ -222,6 +226,28 @@ function JobFormModal({ job, onSave, onClose }: {
                     {/* Requirements */}
                     <RequirementsEditor items={form.requirements.length ? form.requirements : ['']}
                         onChange={val => set('requirements')(val)} />
+
+                    {/* HRD Email — divider + section */}
+                    <div className="pt-2">
+                        <div className="border-t border-zinc-800/60 mb-5" />
+                        <div className={`rounded-2xl border p-4 mb-4 ${form.hrdEmail ? 'bg-yellow-400/5 border-yellow-400/20' : 'bg-zinc-900 border-zinc-800'}`}>
+                            <div className="flex items-center gap-2 mb-1">
+                                <Mail className="w-4 h-4 text-yellow-400 shrink-0" />
+                                <p className="text-sm font-bold text-white">Email Penerima Lamaran</p>
+                            </div>
+                            <p className="text-xs text-zinc-500 mb-3">
+                                Lamaran untuk posisi ini akan dikirim ke email berikut. Kosongkan untuk menggunakan email default dari .env (<code className="text-zinc-400">HRD_EMAIL</code>).
+                            </p>
+                            <input
+                                type="email"
+                                value={form.hrdEmail}
+                                onChange={e => set('hrdEmail')(e.target.value)}
+                                placeholder="e.g. kitchen-hrd@100hourscurry.com"
+                                className={inputCls}
+                            />
+                        </div>
+                    </div>
+
                 </form>
 
                 {/* Modal Footer */}
@@ -269,28 +295,32 @@ function JobRow({ job, onEdit, onDelete, onToggle }: {
                         <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500 border border-zinc-700">Nonaktif</span>
                     )}
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-1.5">
                     <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${deptStyle}`}>{job.dept}</span>
                     <span className="text-xs text-zinc-500 px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">{job.type}</span>
                     <span className="text-xs text-zinc-500 px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700">{job.location}</span>
                 </div>
+                {/* Email penerima */}
+                <div className="flex items-center gap-1.5">
+                    <Mail className="w-3 h-3 text-zinc-600 shrink-0" />
+                    <span className="text-xs text-zinc-600">
+                        {job.hrdEmail || <span className="italic">Default (HRD_EMAIL)</span>}
+                    </span>
+                </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-                {/* Toggle active */}
                 <button onClick={onToggle} title={job.isActive ? 'Nonaktifkan' : 'Aktifkan'}
                     className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all
                         ${job.isActive ? 'bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20' : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'}`}>
                     {job.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 </button>
-                {/* Edit */}
                 <button onClick={onEdit}
                     className="w-8 h-8 rounded-xl bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white flex items-center justify-center transition-all">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                 </button>
-                {/* Delete */}
                 <button onClick={confirmDelete} disabled={deleting}
                     className="w-8 h-8 rounded-xl bg-zinc-800 text-zinc-600 hover:bg-red-400/10 hover:text-red-400 flex items-center justify-center transition-all disabled:opacity-40">
                     {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -367,7 +397,6 @@ export default function CareerPositionsCMS() {
     const filtered = jobs.filter(j =>
         filter === 'all' ? true : filter === 'active' ? j.isActive : !j.isActive
     )
-
     const activeCount = jobs.filter(j => j.isActive).length
 
     return (
@@ -381,9 +410,7 @@ export default function CareerPositionsCMS() {
                         </div>
                         <div>
                             <h1 className="text-base font-bold text-white">Career Positions</h1>
-                            <p className="text-xs text-zinc-500">
-                                {activeCount} posisi aktif · {jobs.length} total
-                            </p>
+                            <p className="text-xs text-zinc-500">{activeCount} posisi aktif · {jobs.length} total</p>
                         </div>
                     </div>
                     <button onClick={() => setModal('new')}
@@ -394,9 +421,7 @@ export default function CareerPositionsCMS() {
                 </div>
             </div>
 
-            {/* Content */}
             <div className="max-w-5xl mx-auto px-6 py-8">
-
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-4 mb-8">
                     {[
@@ -415,7 +440,7 @@ export default function CareerPositionsCMS() {
                 <div className="flex gap-2 mb-5">
                     {(['all', 'active', 'inactive'] as const).map(f => (
                         <button key={f} onClick={() => setFilter(f)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all capitalize
+                            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all
                                 ${filter === f
                                     ? 'bg-yellow-400 text-black border-yellow-400'
                                     : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-zinc-200'}`}>
@@ -465,7 +490,6 @@ export default function CareerPositionsCMS() {
                 )}
             </div>
 
-            {/* Modal */}
             {modal !== null && (
                 <JobFormModal
                     job={modal === 'new' ? null : modal as JobPosition}
