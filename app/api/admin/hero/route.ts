@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
+// ✅ Paksa Next.js tidak cache route ini
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
     try {
         let hero = await prisma.heroContent.findFirst()
@@ -19,7 +22,10 @@ export async function GET() {
                 }
             })
         }
-        return NextResponse.json(hero)
+        // ✅ Header supaya browser juga tidak cache
+        return NextResponse.json(hero, {
+            headers: { 'Cache-Control': 'no-store' }
+        })
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch hero' }, { status: 500 })
     }
@@ -32,7 +38,9 @@ export async function PUT(request: Request) {
         const updated = hero
             ? await prisma.heroContent.update({ where: { id: hero.id }, data: body })
             : await prisma.heroContent.create({ data: body })
-        return NextResponse.json(updated)
+        return NextResponse.json(updated, {
+            headers: { 'Cache-Control': 'no-store' }
+        })
     } catch (error) {
         return NextResponse.json({ error: 'Failed to update hero' }, { status: 500 })
     }

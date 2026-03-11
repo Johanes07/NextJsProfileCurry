@@ -29,22 +29,31 @@ const defaultHero: HeroData = {
 
 export function HeroSection() {
     const [mounted, setMounted] = useState(false)
-    const [hero, setHero] = useState<HeroData>(defaultHero)
+    const [hero, setHero] = useState<HeroData | null>(null) // null = belum load
     const { resolvedTheme } = useTheme()
 
     useEffect(() => {
         setMounted(true)
-        fetch('/api/website/hero')
+        // ✅ Fix 1: endpoint yang benar
+        // ✅ Fix 2: cache: 'no-store' supaya selalu ambil data terbaru
+        fetch('/api/admin/hero', { cache: 'no-store' })
             .then(res => res.json())
-            .then(data => { if (data?.badgeText) setHero(data) })
-            .catch(() => { })
+            .then(data => {
+                if (data?.badgeText) setHero(data)
+                else setHero(defaultHero)
+            })
+            .catch(() => setHero(defaultHero))
     }, [])
 
     const isDark = mounted ? resolvedTheme === 'dark' : true
+
+    // Gunakan defaultHero saat data belum masuk (hindari flicker)
+    const h = hero ?? defaultHero
+
     const stats = [
-        { value: hero.stat1Value, label: hero.stat1Label, suffix: hero.stat1Suffix },
-        { value: hero.stat2Value, label: hero.stat2Label, suffix: hero.stat2Suffix },
-        { value: hero.stat3Value, label: hero.stat3Label, suffix: hero.stat3Suffix },
+        { value: h.stat1Value, label: h.stat1Label, suffix: h.stat1Suffix },
+        { value: h.stat2Value, label: h.stat2Label, suffix: h.stat2Suffix },
+        { value: h.stat3Value, label: h.stat3Label, suffix: h.stat3Suffix },
     ]
 
     return (
@@ -78,23 +87,23 @@ export function HeroSection() {
 
                     <div className={`inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-4 py-2 mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                         <Clock className="w-4 h-4 text-yellow-500" />
-                        <span className="text-yellow-500 text-sm font-bold tracking-wider">{hero.badgeText}</span>
+                        <span className="text-yellow-500 text-sm font-bold tracking-wider">{h.badgeText}</span>
                     </div>
 
                     <h1 className={`text-6xl md:text-8xl font-black leading-none mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        <span className="block">{hero.headingLine1}</span>
-                        <span className="block text-yellow-500">{hero.headingLine2}</span>
-                        <span className="block">{hero.headingLine3}</span>
+                        <span className="block">{h.headingLine1}</span>
+                        <span className="block text-yellow-500">{h.headingLine2}</span>
+                        <span className="block">{h.headingLine3}</span>
                     </h1>
 
                     <div className={`flex items-center justify-center gap-4 mb-6 transition-all duration-700 delay-200 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
                         <div className="h-px bg-yellow-400/40 w-24" />
-                        <span className="text-yellow-500 text-sm font-bold tracking-widest">EST. {hero.estYear}</span>
+                        <span className="text-yellow-500 text-sm font-bold tracking-widest">EST. {h.estYear}</span>
                         <div className="h-px bg-yellow-400/40 w-24" />
                     </div>
 
                     <p className={`text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
-                        {hero.subtitle}
+                        {h.subtitle}
                     </p>
 
                     <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
