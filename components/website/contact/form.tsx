@@ -7,17 +7,65 @@ import { useTheme } from 'next-themes'
 
 const ContactMap = dynamic(() => import('./map').then(m => m.ContactMap), { ssr: false })
 
+// ── Types ─────────────────────────────────────────────────────
+interface ContactFormData {
+    badge: string
+    headingLine1: string
+    headingLine2: string
+    locationLines: string[]
+    hoursLines: string[]
+    phoneLines: string[]
+    emailLines: string[]
+}
+
+const DEFAULT: ContactFormData = {
+    badge: 'Our Information',
+    headingLine1: 'VISIT US',
+    headingLine2: 'ANYTIME',
+    locationLines: ['Jl. Kuliner No. 1', 'Jakarta Selatan, 12345'],
+    hoursLines: ['Mon – Fri: 11:00 AM – 10:00 PM', 'Sat – Sun: 10:00 AM – 11:00 PM'],
+    phoneLines: ['+62 21 1234 5678', '+62 812 3456 7890'],
+    emailLines: ['hello@100hourscurry.com', 'reservation@100hourscurry.com'],
+}
+
 export function ContactForm() {
     const [submitted, setSubmitted] = useState(false)
     const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
+    const [content, setContent] = useState<ContactFormData>(DEFAULT)
     const { resolvedTheme } = useTheme()
     const [mounted, setMounted] = useState(false)
-    useEffect(() => setMounted(true), [])
+
+    useEffect(() => { setMounted(true) }, [])
+
+    useEffect(() => {
+        fetch('/api/admin/contact/form', { cache: 'no-store' })
+            .then(r => r.json())
+            .then((d: Partial<ContactFormData>) => {
+                setContent({
+                    badge: d.badge || DEFAULT.badge,
+                    headingLine1: d.headingLine1 || DEFAULT.headingLine1,
+                    headingLine2: d.headingLine2 || DEFAULT.headingLine2,
+                    locationLines: d.locationLines?.length ? d.locationLines : DEFAULT.locationLines,
+                    hoursLines: d.hoursLines?.length ? d.hoursLines : DEFAULT.hoursLines,
+                    phoneLines: d.phoneLines?.length ? d.phoneLines : DEFAULT.phoneLines,
+                    emailLines: d.emailLines?.length ? d.emailLines : DEFAULT.emailLines,
+                })
+            })
+            .catch(() => {/* fallback ke DEFAULT */ })
+    }, [])
+
     const isDark = mounted ? resolvedTheme === 'dark' : true
 
     const inputClass = `w-full border rounded-2xl px-5 py-4 focus:outline-none text-sm transition-all duration-300 ${isDark
         ? 'bg-white/5 border-white/10 text-white placeholder-white/20 focus:border-yellow-400/50 focus:bg-yellow-400/5'
         : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-yellow-400/60 focus:bg-yellow-50'}`
+
+    const infoCards = [
+        { icon: MapPin, title: 'Location', lines: content.locationLines },
+        { icon: Clock, title: 'Opening Hours', lines: content.hoursLines },
+        { icon: Phone, title: 'Phone', lines: content.phoneLines },
+        { icon: Mail, title: 'Email', lines: content.emailLines },
+    ]
 
     return (
         <section className={`py-24 transition-colors duration-300 ${isDark ? 'bg-zinc-950' : 'bg-white'}`}>
@@ -26,25 +74,25 @@ export function ContactForm() {
 
                     {/* Left — Info */}
                     <div>
-                        <span className="inline-block bg-yellow-400/10 text-yellow-500 text-sm font-bold px-4 py-2 rounded-full mb-8 border border-yellow-400/20">Our Information</span>
+                        <span className="inline-block bg-yellow-400/10 text-yellow-500 text-sm font-bold px-4 py-2 rounded-full mb-8 border border-yellow-400/20">
+                            {content.badge}
+                        </span>
                         <h2 className={`text-4xl md:text-5xl font-black mb-10 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            VISIT US<span className="block text-yellow-500">ANYTIME</span>
+                            {content.headingLine1}
+                            <span className="block text-yellow-500">{content.headingLine2}</span>
                         </h2>
 
                         <div className="space-y-6 mb-12">
-                            {[
-                                { icon: MapPin, title: 'Location', lines: ['Jl. Kuliner No. 1', 'Jakarta Selatan, 12345'] },
-                                { icon: Clock, title: 'Opening Hours', lines: ['Mon – Fri: 11:00 AM – 10:00 PM', 'Sat – Sun: 10:00 AM – 11:00 PM'] },
-                                { icon: Phone, title: 'Phone', lines: ['+62 21 1234 5678', '+62 812 3456 7890'] },
-                                { icon: Mail, title: 'Email', lines: ['hello@100hourscurry.com', 'reservation@100hourscurry.com'] },
-                            ].map(({ icon: Icon, title, lines }) => (
+                            {infoCards.map(({ icon: Icon, title, lines }) => (
                                 <div key={title} className="flex gap-5 group">
                                     <div className="w-12 h-12 bg-yellow-400/10 border border-yellow-400/20 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-yellow-400 transition-all duration-300">
                                         <Icon className="w-5 h-5 text-yellow-500 group-hover:text-black transition-colors duration-300" />
                                     </div>
                                     <div>
                                         <p className={`font-black mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</p>
-                                        {lines.map(line => <p key={line} className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{line}</p>)}
+                                        {lines.map((line, i) => (
+                                            <p key={i} className={`text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{line}</p>
+                                        ))}
                                     </div>
                                 </div>
                             ))}
@@ -54,7 +102,9 @@ export function ContactForm() {
 
                     {/* Right — Form */}
                     <div>
-                        <span className="inline-block bg-yellow-400/10 text-yellow-500 text-sm font-bold px-4 py-2 rounded-full mb-8 border border-yellow-400/20">Send a Message</span>
+                        <span className="inline-block bg-yellow-400/10 text-yellow-500 text-sm font-bold px-4 py-2 rounded-full mb-8 border border-yellow-400/20">
+                            Send a Message
+                        </span>
 
                         {submitted ? (
                             <div className="h-full flex flex-col items-center justify-center text-center py-20">
@@ -64,7 +114,9 @@ export function ContactForm() {
                                 <h3 className={`text-3xl font-black mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Message Sent!</h3>
                                 <p className={`max-w-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Thanks for reaching out. We will get back to you within 24 hours.</p>
                                 <button onClick={() => { setSubmitted(false); setForm({ name: '', email: '', subject: '', message: '' }) }}
-                                    className="mt-8 text-yellow-500 font-bold text-sm hover:underline">Send another message</button>
+                                    className="mt-8 text-yellow-500 font-bold text-sm hover:underline">
+                                    Send another message
+                                </button>
                             </div>
                         ) : (
                             <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true) }} className="space-y-5">
@@ -74,7 +126,9 @@ export function ContactForm() {
                                     { key: 'subject', label: 'Subject', type: 'text', placeholder: 'Table reservation, inquiry...' },
                                 ].map(({ key, label, type, placeholder }) => (
                                     <div key={key}>
-                                        <label className={`block text-xs font-bold tracking-widest mb-2 ${isDark ? 'text-white/50' : 'text-gray-400'}`}>{label.toUpperCase()}</label>
+                                        <label className={`block text-xs font-bold tracking-widest mb-2 ${isDark ? 'text-white/50' : 'text-gray-400'}`}>
+                                            {label.toUpperCase()}
+                                        </label>
                                         <input type={type} placeholder={placeholder} value={form[key as keyof typeof form]}
                                             onChange={e => setForm({ ...form, [key]: e.target.value })} required className={inputClass} />
                                     </div>

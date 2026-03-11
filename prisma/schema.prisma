@@ -283,3 +283,22 @@ model ContactHeroContent {
   updatedAt    DateTime @updatedAt
   @@schema("appcompany")
 }
+
+model ContactFormContent {
+  id           String   @id @default(cuid())
+
+  // Section heading
+  badge        String   @default("Our Information")
+  headingLine1 String   @default("VISIT US")
+  headingLine2 String   @default("ANYTIME")
+
+  // Info cards (array of strings stored as String[])
+  locationLines String[]
+  hoursLines    String[]
+  phoneLines    String[]
+  emailLines    String[]
+
+  updatedAt    DateTime @updatedAt
+
+  @@schema("appcompany")
+}
