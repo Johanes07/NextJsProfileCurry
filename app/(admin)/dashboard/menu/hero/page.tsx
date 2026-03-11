@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { Flame, Save, Eye, EyeOff, ImageIcon, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { Flame, Save, Eye, EyeOff, ImageIcon, RefreshCw, CheckCircle, AlertCircle, Upload, X, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -153,7 +153,10 @@ export default function MenuHeroCMS() {
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
     const [previewDark, setPreviewDark] = useState(true)
     const [isDirty, setIsDirty] = useState(false)
+    const [uploading, setUploading] = useState(false)
+    const [dragOver, setDragOver] = useState(false)
     const originalRef = useRef<MenuHeroData>(DEFAULT_DATA)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // ── Fetch ───────────────────────────────────────────────────
     useEffect(() => {
@@ -183,6 +186,45 @@ export default function MenuHeroCMS() {
     function handleReset() {
         setData(originalRef.current)
         setIsDirty(false)
+    }
+
+    // ── Upload image ─────────────────────────────────────────────
+    async function handleUpload(file: File) {
+        if (!file.type.startsWith('image/')) {
+            showToast('File harus berupa gambar', 'error')
+            return
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Ukuran file maks 5MB', 'error')
+            return
+        }
+        setUploading(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            const res = await fetch('/api/upload', { method: 'POST', body: formData })
+            if (!res.ok) throw new Error()
+            const { url } = await res.json()
+            setData(prev => ({ ...prev, imageUrl: url }))
+            showToast('Gambar berhasil diupload!', 'success')
+        } catch {
+            showToast('Gagal upload gambar', 'error')
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0]
+        if (file) handleUpload(file)
+        e.target.value = ''
+    }
+
+    function handleDrop(e: React.DragEvent) {
+        e.preventDefault()
+        setDragOver(false)
+        const file = e.dataTransfer.files?.[0]
+        if (file) handleUpload(file)
     }
 
     async function handleSave() {
@@ -343,32 +385,109 @@ export default function MenuHeroCMS() {
                             </div>
                         </div>
 
-                        {/* Image URL */}
+                        {/* Background Image Upload */}
                         <div className="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
                             <h2 className="text-sm font-bold text-zinc-300 mb-5 flex items-center gap-2">
                                 <span className="w-1.5 h-5 bg-yellow-400 rounded-full inline-block" />
                                 Background Image
                             </h2>
-                            <Field
-                                label="URL Gambar"
-                                value={data.imageUrl || ''}
-                                onChange={set('imageUrl')}
-                                placeholder="/images/MAINDISH/AI1.png"
-                                hint="Path gambar dari folder /public. Contoh: /images/MAINDISH/AI1.png"
-                                mono
+
+                            {/* Hidden file input */}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
                             />
-                            {data.imageUrl && (
-                                <div className="mt-4 relative w-full h-32 rounded-xl overflow-hidden bg-zinc-800 border border-zinc-700">
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="flex flex-col items-center gap-2 text-zinc-600">
-                                            <ImageIcon className="w-6 h-6" />
-                                            <span className="text-xs font-mono">{data.imageUrl}</span>
+
+                            {/* If image exists: show preview with replace/remove buttons */}
+                            {data.imageUrl ? (
+                                <div className="relative rounded-2xl overflow-hidden border border-zinc-700 group">
+                                    <div className="relative w-full h-52 bg-zinc-800">
+                                        <img
+                                            src={data.imageUrl}
+                                            alt="Background preview"
+                                            className="w-full h-full object-cover"
+                                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                        />
+                                        {/* Overlay on hover */}
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                            <button
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={uploading}
+                                                className="flex items-center gap-2 px-4 py-2.5 bg-yellow-400 text-black text-sm font-black rounded-xl hover:bg-yellow-300 transition-all disabled:opacity-50"
+                                            >
+                                                {uploading
+                                                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                                                    : <Upload className="w-4 h-4" />
+                                                }
+                                                Ganti Gambar
+                                            </button>
+                                            <button
+                                                onClick={() => setData(prev => ({ ...prev, imageUrl: '' }))}
+                                                className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 border border-red-500/40 text-red-400 text-sm font-bold rounded-xl hover:bg-red-500/30 transition-all"
+                                            >
+                                                <X className="w-4 h-4" />
+                                                Hapus
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="absolute bottom-2 right-2 bg-zinc-900/80 rounded-lg px-2 py-1">
-                                        <span className="text-xs text-zinc-400">Preview gambar tersedia di website</span>
+                                    <div className="bg-zinc-800/80 px-4 py-2.5 flex items-center justify-between">
+                                        <span className="text-xs font-mono text-zinc-400 truncate max-w-xs">{data.imageUrl}</span>
+                                        <span className="text-xs text-zinc-600 shrink-0 ml-2">Hover untuk ganti</span>
                                     </div>
                                 </div>
+                            ) : (
+                                /* Drop zone when no image */
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                                    onDragLeave={() => setDragOver(false)}
+                                    onDrop={handleDrop}
+                                    className={`
+                    relative w-full h-48 rounded-2xl border-2 border-dashed cursor-pointer
+                    flex flex-col items-center justify-center gap-3 transition-all
+                    ${dragOver
+                                            ? 'border-yellow-400 bg-yellow-400/5 scale-[1.01]'
+                                            : 'border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800/50'
+                                        }
+                    ${uploading ? 'pointer-events-none' : ''}
+                  `}
+                                >
+                                    {uploading ? (
+                                        <>
+                                            <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
+                                            <p className="text-sm text-zinc-400 font-medium">Mengupload gambar...</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                                                <Upload className="w-5 h-5 text-zinc-400" />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-bold text-zinc-300">
+                                                    {dragOver ? 'Lepas untuk upload' : 'Klik atau drag & drop gambar'}
+                                                </p>
+                                                <p className="text-xs text-zinc-600 mt-1">PNG, JPG, WebP — maks 5MB</p>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Upload button when image already exists but not hovering on mobile */}
+                            {data.imageUrl && (
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploading}
+                                    className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-700 text-zinc-400 text-sm font-medium hover:border-zinc-500 hover:text-zinc-200 disabled:opacity-40 transition-all"
+                                >
+                                    {uploading
+                                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Mengupload...</>
+                                        : <><Upload className="w-4 h-4" /> Ganti Gambar</>
+                                    }
+                                </button>
                             )}
                         </div>
                     </div>
