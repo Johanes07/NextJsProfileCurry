@@ -261,3 +261,14 @@ model TeamSectionMeta {
   updatedAt       DateTime @updatedAt
   @@schema("appcompany")
 }
+
+model MenuHeroContent {
+  id          String   @id @default(cuid())
+  badgeText   String   @default("CRAFTED WITH OBSESSION")
+  headingLine1 String  @default("OUR")
+  headingLine2 String  @default("MENU")
+  subtitle    String   @default("Every dish slow-cooked to perfection. Choose your curry, choose your adventure.")
+  imageUrl    String?  @default("/images/MAINDISH/AI1.png")
+  updatedAt   DateTime @updatedAt
+  @@schema("appcompany")
+}
