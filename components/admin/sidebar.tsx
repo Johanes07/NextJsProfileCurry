@@ -79,7 +79,7 @@ function isNavActive(href: string, pathname: string, siblings: NavChild[]): bool
 }
 
 const Logo = () => (
-    <div className="p-6 border-b border-yellow-400/10">
+    <Link href="/dashboard" className="block p-6 border-b border-yellow-400/10 hover:bg-white/5 transition-colors">
         <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-yellow-400/20">
                 <Image src="/images/LOGOCURRY1.png" alt="Logo" width={32} height={32} className="object-contain" />
@@ -89,7 +89,7 @@ const Logo = () => (
                 <p className="text-xs font-bold text-yellow-400 tracking-widest">ADMIN PANEL</p>
             </div>
         </div>
-    </div>
+    </Link>
 )
 
 export function AdminSidebar() {
