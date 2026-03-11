@@ -82,8 +82,11 @@ model JobPosition {
 model ContactMessage {
   id        String   @id @default(cuid())
   name      String
+  phone     String   @default("")
   email     String
   subject   String
+  country   String   @default("")
+  city      String   @default("")
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
