@@ -3,15 +3,55 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 
+interface MapMarker {
+  id: string
+  title: string
+  address: string
+  lat: number
+  lng: number
+}
+
+interface MapData {
+  centerLat: number
+  centerLng: number
+  zoom: number
+  markers: MapMarker[]
+}
+
+const DEFAULT: MapData = {
+  centerLat: -6.8,
+  centerLng: 107.5,
+  zoom: 8,
+  markers: [
+    { id: '1', title: '100Hours @ CGK T1', address: 'Bandara Soekarno-Hatta Terminal 1', lat: -6.1256, lng: 106.6558 },
+    { id: '2', title: '100Hours @ AEON Mall TJB', address: 'AEON Mall Jakarta Garden City', lat: -6.3003, lng: 106.6531 },
+  ],
+}
+
 export function ContactMap() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [mapData, setMapData] = useState<MapData>(DEFAULT)
   const mapRef = useRef<any>(null)
   const tileRef = useRef<any>(null)
+  const markersRef = useRef<any[]>([])
 
   useEffect(() => { setMounted(true) }, [])
 
-  // Init map only after mounted (div is in DOM)
+  useEffect(() => {
+    fetch('/api/admin/contact/map', { cache: 'no-store' })
+      .then(r => r.json())
+      .then((d: Partial<MapData>) => {
+        setMapData({
+          centerLat: d.centerLat ?? DEFAULT.centerLat,
+          centerLng: d.centerLng ?? DEFAULT.centerLng,
+          zoom: d.zoom ?? DEFAULT.zoom,
+          markers: Array.isArray(d.markers) && d.markers.length > 0 ? d.markers : DEFAULT.markers,
+        })
+      })
+      .catch(() => { })
+  }, [])
+
   useEffect(() => {
     if (!mounted) return
     if (typeof window === 'undefined') return
@@ -26,34 +66,6 @@ export function ContactMap() {
     const tileUrl = isDark
       ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
       : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-
-    // If map already exists, just swap tile layer
-    if (container._leaflet_id && mapRef.current) {
-      if (tileRef.current) {
-        mapRef.current.removeLayer(tileRef.current)
-      }
-      tileRef.current = L.tileLayer(tileUrl, {
-        attribution: '© OpenStreetMap © CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19,
-      }).addTo(mapRef.current)
-      return
-    }
-
-    // First init
-    const map = L.map('leaflet-map', {
-      center: [-6.8, 107.5],
-      zoom: 8,
-      zoomControl: true,
-      scrollWheelZoom: false,
-    })
-    mapRef.current = map
-
-    tileRef.current = L.tileLayer(tileUrl, {
-      attribution: '© OpenStreetMap © CARTO',
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(map)
 
     const makeIcon = () => L.divIcon({
       html: `
@@ -76,16 +88,56 @@ export function ContactMap() {
                 <p style="color:${isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'};font-size:11px;margin:0;">${address}</p>
             </div>`
 
-    L.marker([-6.1256, 106.6558], { icon: makeIcon() })
-      .addTo(map)
-      .bindPopup(popupStyle('100Hours @ CGK T1', 'Bandara Soekarno-Hatta Terminal 1'), { closeButton: false })
-      .openPopup()
+    // ── If map already exists, swap tile + re-render markers ──
+    if (container._leaflet_id && mapRef.current) {
+      if (tileRef.current) mapRef.current.removeLayer(tileRef.current)
+      tileRef.current = L.tileLayer(tileUrl, {
+        attribution: '© OpenStreetMap © CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19,
+      }).addTo(mapRef.current)
 
-    L.marker([-6.3003, 106.6531], { icon: makeIcon() })
-      .addTo(map)
-      .bindPopup(popupStyle('100Hours @ AEON Mall TJB', 'AEON Mall Jakarta Garden City'), { closeButton: false })
+      // Remove old markers
+      markersRef.current.forEach(m => m.remove())
+      markersRef.current = []
 
-  }, [mounted, resolvedTheme])
+      // Add updated markers
+      mapData.markers.forEach((m, i) => {
+        const marker = L.marker([m.lat, m.lng], { icon: makeIcon() })
+          .addTo(mapRef.current)
+          .bindPopup(popupStyle(m.title, m.address), { closeButton: false })
+        if (i === 0) marker.openPopup()
+        markersRef.current.push(marker)
+      })
+
+      mapRef.current.setView([mapData.centerLat, mapData.centerLng], mapData.zoom)
+      return
+    }
+
+    // ── First init ────────────────────────────────────────────
+    const map = L.map('leaflet-map', {
+      center: [mapData.centerLat, mapData.centerLng],
+      zoom: mapData.zoom,
+      zoomControl: true,
+      scrollWheelZoom: false,
+    })
+    mapRef.current = map
+
+    tileRef.current = L.tileLayer(tileUrl, {
+      attribution: '© OpenStreetMap © CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(map)
+
+    mapData.markers.forEach((m, i) => {
+      const marker = L.marker([m.lat, m.lng], { icon: makeIcon() })
+        .addTo(map)
+        .bindPopup(popupStyle(m.title, m.address), { closeButton: false })
+      if (i === 0) marker.openPopup()
+      markersRef.current.push(marker)
+    })
+
+  }, [mounted, resolvedTheme, mapData])
 
   const isDark = resolvedTheme === 'dark'
 
@@ -112,7 +164,6 @@ export function ContactMap() {
                     color: #000 !important;
                 }
             `}</style>
-      {/* div always rendered — map mounts into it after useEffect */}
       <div
         id="leaflet-map"
         className={`h-64 w-full rounded-3xl overflow-hidden border transition-colors ${isDark ? 'border-yellow-400/10' : 'border-yellow-400/20'}`}

@@ -305,3 +305,14 @@ model ContactFormContent {
 
   @@schema("appcompany")
 }
+
+model ContactMapContent {
+  id        String   @id @default(cuid())
+  centerLat Float    @default(-6.8)
+  centerLng Float    @default(107.5)
+  zoom      Int      @default(8)
+  markers   Json     @default("[]")  // Array of { id, title, address, lat, lng }
+  updatedAt DateTime @updatedAt
+  @@schema("appcompany")
+}
+
