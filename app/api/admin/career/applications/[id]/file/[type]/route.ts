@@ -43,7 +43,7 @@ export async function GET(
         }
         const contentType = contentTypeMap[ext] ?? 'application/octet-stream'
 
-        return new NextResponse(fileData as Buffer, {
+        return new NextResponse(new Uint8Array(fileData as Buffer), {
             headers: {
                 'Content-Type': contentType,
                 'Content-Disposition': `inline; filename="${fileName}"`,
