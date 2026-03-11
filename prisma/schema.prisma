@@ -316,3 +316,15 @@ model ContactMapContent {
   @@schema("appcompany")
 }
 
+model CareerHeroContent {
+  id           String   @id @default(cuid())
+  badgeText    String   @default("JOIN THE TEAM")
+  headingLine1 String   @default("WORK WITH")
+  headingLine2 String   @default("US")
+  subtitle     String   @default("Be part of something obsessive. We are always looking for passionate people who love food as much as we do.")
+  imageUrl     String?  @default("/images/chef.jpg")
+  updatedAt    DateTime @updatedAt
+  @@schema("appcompany")
+}
+
+
