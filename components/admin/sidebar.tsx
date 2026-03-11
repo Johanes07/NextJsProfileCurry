@@ -55,6 +55,29 @@ function getIcon(name: string): LucideIcon {
     return LucideIcons.Circle
 }
 
+/**
+ * Cek apakah sebuah nav item aktif.
+ * - Exact match selalu aktif
+ * - startsWith HANYA aktif jika tidak ada sibling yang lebih spesifik yang cocok
+ *
+ * Contoh: pathname = '/dashboard/menu/hero'
+ *   - '/dashboard/menu/hero' → exact match ✅
+ *   - '/dashboard/menu'      → startsWith tapi BUKAN exact → ❌ (tidak aktif)
+ */
+function isNavActive(href: string, pathname: string, siblings: NavChild[]): boolean {
+    // Exact match selalu aktif
+    if (pathname === href) return true
+
+    // Kalau ada sibling lain yang lebih spesifik dan cocok, jangan aktifkan yang ini
+    const hasMoreSpecificMatch = siblings.some(
+        s => s.href !== href && (pathname === s.href || pathname.startsWith(s.href + '/'))
+    )
+    if (hasMoreSpecificMatch) return false
+
+    // startsWith sebagai fallback (untuk halaman yang tidak ada di nav tapi sub-route dari href ini)
+    return pathname.startsWith(href + '/')
+}
+
 const Logo = () => (
     <div className="p-6 border-b border-yellow-400/10">
         <div className="flex items-center gap-3">
@@ -86,7 +109,6 @@ export function AdminSidebar() {
             .catch(() => setItems(FALLBACK))
     }, [pathname])
 
-    // Skeleton saat loading
     if (items === null) return (
         <aside className="w-64 bg-zinc-950 border-r border-yellow-400/10 text-white flex flex-col h-full shrink-0">
             <Logo />
@@ -116,7 +138,8 @@ export function AdminSidebar() {
                                 <div className="space-y-1">
                                     {activeChildren.map(child => {
                                         const Icon = getIcon(child.icon)
-                                        const isActive = pathname === child.href || pathname.startsWith(child.href + '/')
+                                        // ✅ Pakai fungsi isNavActive dengan siblings untuk resolve konflik
+                                        const isActive = isNavActive(child.href, pathname, activeChildren)
                                         return (
                                             <Link key={child.id} href={child.href}
                                                 className={cn(
@@ -136,7 +159,7 @@ export function AdminSidebar() {
                         )
                     }
 
-                    // Single item
+                    // Single item (tanpa group)
                     if (item.href) {
                         const Icon = getIcon(item.icon)
                         const isActive = pathname === item.href
