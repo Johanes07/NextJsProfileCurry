@@ -1,16 +1,14 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { MapPin, Phone, Mail, Clock, Save, Eye, EyeOff, RefreshCw, CheckCircle, AlertCircle, Plus, Trash2 } from 'lucide-react'
+import { MapPin, Phone, Mail, Clock, Save, Eye, EyeOff, RefreshCw, CheckCircle, AlertCircle, Plus, Trash2, Loader2 } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────
 interface ContactFormData {
     id?: string
-    // Heading
     badge: string
     headingLine1: string
     headingLine2: string
-    // Info cards
     locationLines: string[]
     hoursLines: string[]
     phoneLines: string[]
@@ -31,57 +29,59 @@ const DEFAULT_DATA: ContactFormData = {
 function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
     return (
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl
-      transition-all duration-300 animate-in slide-in-from-bottom-4
-      ${type === 'success' ? 'bg-emerald-950 border border-emerald-500/40 text-emerald-300' : 'bg-red-950 border border-red-500/40 text-red-300'}`}>
-            {type === 'success' ? <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" /> : <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />}
-            <span className="text-sm font-medium">{message}</span>
+            ${type === 'success'
+                ? 'bg-zinc-950 border border-emerald-500/40 text-emerald-300'
+                : 'bg-zinc-950 border border-red-500/40 text-red-300'}`}>
+            {type === 'success'
+                ? <CheckCircle className="w-5 h-5 shrink-0" />
+                : <AlertCircle className="w-5 h-5 shrink-0" />}
+            <span className="text-sm font-bold">{message}</span>
         </div>
     )
 }
 
-// ── Single Field ──────────────────────────────────────────────
+// ── Input helpers ─────────────────────────────────────────────
+const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-yellow-400/50 transition-all'
+const labelCls = 'text-white/40 text-xs font-black tracking-widest block mb-2'
+
 function Field({ label, value, onChange, placeholder, hint, mono = false }: {
     label: string; value: string; onChange: (v: string) => void
     placeholder?: string; hint?: string; mono?: boolean
 }) {
     return (
-        <div className="space-y-2">
-            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest">{label}</label>
-            <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-                className={`w-full bg-zinc-900 border border-zinc-700/60 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600
-          focus:outline-none focus:border-yellow-400/60 focus:ring-2 focus:ring-yellow-400/10 transition-all duration-200
-          ${mono ? 'font-mono text-sm tracking-wider' : 'text-sm'}`} />
-            {hint && <p className="text-xs text-zinc-600">{hint}</p>}
+        <div>
+            <label className={labelCls}>{label}</label>
+            <input
+                type="text"
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                placeholder={placeholder}
+                className={inputCls + (mono ? ' font-mono tracking-wider' : '')}
+            />
+            {hint && <p className="text-xs text-white/20 mt-1.5">{hint}</p>}
         </div>
     )
 }
 
-// ── Multi-line editor (array of strings) ──────────────────────
-function LinesEditor({ label, icon: Icon, lines, onChange, color = 'yellow' }: {
+// ── Multi-line editor ─────────────────────────────────────────
+function LinesEditor({ label, icon: Icon, lines, onChange }: {
     label: string
     icon: React.ElementType
     lines: string[]
     onChange: (lines: string[]) => void
-    color?: string
 }) {
     function update(i: number, val: string) {
         const next = [...lines]; next[i] = val; onChange(next)
     }
-    function remove(i: number) {
-        onChange(lines.filter((_, idx) => idx !== i))
-    }
-    function add() {
-        onChange([...lines, ''])
-    }
+    function remove(i: number) { onChange(lines.filter((_, idx) => idx !== i)) }
+    function add() { onChange([...lines, '']) }
 
     return (
-        <div className="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
-            <h2 className="text-sm font-bold text-zinc-300 mb-5 flex items-center gap-3">
-                <div className="w-8 h-8 bg-yellow-400/10 border border-yellow-400/20 rounded-xl flex items-center justify-center">
-                    <Icon className="w-4 h-4 text-yellow-400" />
-                </div>
-                {label}
-            </h2>
+        <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
+            <p className="text-white/40 text-xs font-black tracking-widest mb-4 flex items-center gap-2">
+                <Icon className="w-3.5 h-3.5 text-yellow-400" />
+                {label.toUpperCase()}
+            </p>
             <div className="space-y-3">
                 {lines.map((line, i) => (
                     <div key={i} className="flex gap-2">
@@ -90,14 +90,14 @@ function LinesEditor({ label, icon: Icon, lines, onChange, color = 'yellow' }: {
                             value={line}
                             onChange={e => update(i, e.target.value)}
                             placeholder={`Baris ${i + 1}...`}
-                            className="flex-1 bg-zinc-800 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-white text-sm
-                placeholder:text-zinc-600 focus:outline-none focus:border-yellow-400/60 focus:ring-2 focus:ring-yellow-400/10 transition-all"
+                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm
+                                placeholder:text-white/20 focus:outline-none focus:border-yellow-400/50 transition-all"
                         />
                         <button
                             onClick={() => remove(i)}
                             disabled={lines.length <= 1}
-                            className="w-9 h-9 flex items-center justify-center rounded-xl border border-zinc-700 text-zinc-500
-                hover:border-red-500/50 hover:text-red-400 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 text-white/30
+                                hover:border-red-500/40 hover:text-red-400 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
                         >
                             <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -105,7 +105,7 @@ function LinesEditor({ label, icon: Icon, lines, onChange, color = 'yellow' }: {
                 ))}
                 <button
                     onClick={add}
-                    className="flex items-center gap-2 text-xs text-zinc-500 hover:text-yellow-400 transition-colors mt-1"
+                    className="flex items-center gap-2 text-xs font-bold text-white/30 hover:text-yellow-400 transition-colors mt-1"
                 >
                     <Plus className="w-3.5 h-3.5" /> Tambah baris
                 </button>
@@ -124,8 +124,11 @@ function LivePreview({ data, isDark }: { data: ContactFormData; isDark: boolean 
     ]
 
     return (
-        <div className={`rounded-2xl p-6 ${isDark ? 'bg-zinc-950' : 'bg-white border border-gray-200'}`}>
-            <span className="inline-block bg-yellow-400/10 text-yellow-500 text-xs font-bold px-3 py-1.5 rounded-full mb-4 border border-yellow-400/20">
+        <div className={`p-6 ${isDark ? 'bg-zinc-950' : 'bg-white'}`}>
+            <span className={`inline-block text-xs font-bold px-3 py-1.5 rounded-full mb-4 border
+                ${isDark
+                    ? 'bg-yellow-400/10 text-yellow-500 border-yellow-400/20'
+                    : 'bg-yellow-400/10 text-yellow-600 border-yellow-400/20'}`}>
                 {data.badge}
             </span>
             <h2 className={`text-3xl font-black mb-6 leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -134,7 +137,7 @@ function LivePreview({ data, isDark }: { data: ContactFormData; isDark: boolean 
             </h2>
             <div className="space-y-4">
                 {infoCards.map(({ icon: Icon, title, lines }) => (
-                    <div key={title} className="flex gap-4 group">
+                    <div key={title} className="flex gap-4">
                         <div className="w-10 h-10 bg-yellow-400/10 border border-yellow-400/20 rounded-xl flex items-center justify-center shrink-0">
                             <Icon className="w-4 h-4 text-yellow-500" />
                         </div>
@@ -178,8 +181,6 @@ export default function ContactFormCMS() {
         setTimeout(() => setToast(null), 3000)
     }
 
-    function handleReset() { setData(originalRef.current); setIsDirty(false) }
-
     const set = (key: keyof ContactFormData) => (val: string) =>
         setData(prev => ({ ...prev, [key]: val }))
 
@@ -208,132 +209,119 @@ export default function ContactFormCMS() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-2 border-yellow-400/30 border-t-yellow-400 rounded-full animate-spin" />
-                    <p className="text-zinc-500 text-sm">Memuat konten...</p>
-                </div>
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white">
+        <div className="p-8 bg-black min-h-screen">
             {/* Header */}
-            <div className="sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-b border-zinc-800/60">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-yellow-400/10 border border-yellow-400/30 rounded-xl flex items-center justify-center">
-                            <Mail className="w-4 h-4 text-yellow-400" />
-                        </div>
-                        <div>
-                            <h1 className="text-base font-bold text-white">Contact Info & Form</h1>
-                            <p className="text-xs text-zinc-500">Edit konten info kontak di halaman contact</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {isDirty && (
-                            <span className="hidden sm:flex items-center gap-1.5 text-xs text-yellow-400/80 bg-yellow-400/5 border border-yellow-400/20 rounded-full px-3 py-1.5">
-                                <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />
-                                Ada perubahan
-                            </span>
-                        )}
-                        <button onClick={handleReset} disabled={!isDirty}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-700 text-zinc-400 text-sm font-medium
-                hover:border-zinc-500 hover:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                            <RefreshCw className="w-3.5 h-3.5" /> Reset
-                        </button>
-                        <button onClick={handleSave} disabled={saving || !isDirty}
-                            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-yellow-400 text-black text-sm font-black
-                hover:bg-yellow-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-yellow-400/20">
-                            {saving
-                                ? <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                : <Save className="w-3.5 h-3.5" />}
-                            {saving ? 'Menyimpan...' : 'Simpan'}
-                        </button>
-                    </div>
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-3xl font-black text-white">Contact Info & Form</h1>
+                    <p className="text-white/40 text-sm mt-1">Edit konten info kontak di halaman contact</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {isDirty && (
+                        <span className="hidden sm:flex items-center gap-1.5 text-xs text-yellow-400/80 bg-yellow-400/5 border border-yellow-400/20 rounded-full px-3 py-1.5">
+                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />
+                            Ada perubahan
+                        </span>
+                    )}
+                    <button
+                        onClick={() => { setData(originalRef.current); setIsDirty(false) }}
+                        disabled={!isDirty}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-black hover:bg-white/10 hover:text-white/60 disabled:opacity-30 transition-all"
+                    >
+                        <RefreshCw className="w-3.5 h-3.5" /> Reset
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving || !isDirty}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-400 text-black text-sm font-black hover:scale-105 transition-all shadow-lg shadow-yellow-400/20 disabled:opacity-40 disabled:scale-100"
+                    >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {saving ? 'Menyimpan...' : 'Simpan'}
+                    </button>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_440px] gap-6">
 
-                    {/* Form Panel */}
-                    <div className="space-y-6">
+                {/* ── Form Panel ─────────────────────────────────── */}
+                <div className="space-y-4">
 
-                        {/* Heading */}
-                        <div className="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
-                            <h2 className="text-sm font-bold text-zinc-300 mb-5 flex items-center gap-2">
-                                <span className="w-1.5 h-5 bg-yellow-400 rounded-full inline-block" />
-                                Section Heading
-                            </h2>
-                            <div className="space-y-4">
-                                <Field label="Teks Badge" value={data.badge} onChange={set('badge')}
-                                    placeholder="Our Information" hint="Label kecil di atas heading." />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Field label="Baris Pertama" value={data.headingLine1} onChange={set('headingLine1')}
-                                        placeholder="VISIT US" hint="Warna putih / abu gelap" mono />
-                                    <Field label="Baris Kedua" value={data.headingLine2} onChange={set('headingLine2')}
-                                        placeholder="ANYTIME" hint="Warna kuning / aksen" mono />
-                                </div>
-                                <div className="p-3 bg-zinc-800/50 rounded-xl">
-                                    <p className="text-xs text-zinc-500 mb-1.5">Preview heading:</p>
-                                    <div className="flex items-baseline gap-3">
-                                        <span className="text-2xl font-black text-white">{data.headingLine1 || '—'}</span>
-                                        <span className="text-2xl font-black text-yellow-400">{data.headingLine2 || '—'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Info Cards */}
-                        <LinesEditor label="Location" icon={MapPin}
-                            lines={data.locationLines} onChange={setLines('locationLines')} />
-                        <LinesEditor label="Opening Hours" icon={Clock}
-                            lines={data.hoursLines} onChange={setLines('hoursLines')} />
-                        <LinesEditor label="Phone" icon={Phone}
-                            lines={data.phoneLines} onChange={setLines('phoneLines')} />
-                        <LinesEditor label="Email" icon={Mail}
-                            lines={data.emailLines} onChange={setLines('emailLines')} />
+                    {/* Badge */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
+                        <p className="text-white/40 text-xs font-black tracking-widest mb-4">BADGE / LABEL</p>
+                        <Field label="TEKS BADGE" value={data.badge} onChange={set('badge')}
+                            placeholder="Our Information" hint="Label kecil di atas heading." />
                     </div>
 
-                    {/* Preview Panel */}
-                    <div className="space-y-4">
-                        <div className="sticky top-24">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Live Preview</h2>
-                                <button onClick={() => setPreviewDark(p => !p)}
-                                    className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors
-                    bg-zinc-800/60 border border-zinc-700/50 rounded-xl px-3 py-2">
-                                    {previewDark ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                    {previewDark ? 'Dark Mode' : 'Light Mode'}
-                                </button>
-                            </div>
+                    {/* Heading */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
+                        <p className="text-white/40 text-xs font-black tracking-widest mb-4">HEADING UTAMA</p>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <Field label="BARIS PERTAMA" value={data.headingLine1} onChange={set('headingLine1')}
+                                placeholder="VISIT US" mono hint="Warna putih" />
+                            <Field label="BARIS KEDUA" value={data.headingLine2} onChange={set('headingLine2')}
+                                placeholder="ANYTIME" mono hint="Warna kuning / aksen" />
+                        </div>
+                        <div className="bg-white/5 rounded-xl px-4 py-3 flex items-baseline gap-3">
+                            <span className="text-2xl font-black text-white">{data.headingLine1 || '—'}</span>
+                            <span className="text-2xl font-black text-yellow-400">{data.headingLine2 || '—'}</span>
+                        </div>
+                    </div>
 
-                            <div className="rounded-2xl overflow-hidden border border-zinc-800/60 shadow-2xl shadow-black/50">
-                                <div className="bg-zinc-900/50 border-b border-zinc-800/60 px-4 py-2.5 flex items-center gap-2">
-                                    <div className="flex gap-1.5">
-                                        <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                                        <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                                        <div className="w-3 h-3 rounded-full bg-green-500/60" />
-                                    </div>
-                                    <span className="text-xs text-zinc-600 ml-2 font-mono">
-                                        yoursite.com/contact — {previewDark ? '🌙 dark' : '☀️ light'}
-                                    </span>
+                    {/* Info Cards */}
+                    <LinesEditor label="Location" icon={MapPin}
+                        lines={data.locationLines} onChange={setLines('locationLines')} />
+                    <LinesEditor label="Opening Hours" icon={Clock}
+                        lines={data.hoursLines} onChange={setLines('hoursLines')} />
+                    <LinesEditor label="Phone" icon={Phone}
+                        lines={data.phoneLines} onChange={setLines('phoneLines')} />
+                    <LinesEditor label="Email" icon={Mail}
+                        lines={data.emailLines} onChange={setLines('emailLines')} />
+                </div>
+
+                {/* ── Preview Panel ───────────────────────────────── */}
+                <div className="space-y-4">
+                    <div className="sticky top-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <p className="text-white/40 text-xs font-black tracking-widest">LIVE PREVIEW</p>
+                            <button
+                                onClick={() => setPreviewDark(p => !p)}
+                                className="flex items-center gap-2 text-xs font-black text-white/40 bg-white/5 border border-white/10 rounded-xl px-3 py-2 hover:bg-white/10 hover:text-white/60 transition-all"
+                            >
+                                {previewDark ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                {previewDark ? 'Dark' : 'Light'}
+                            </button>
+                        </div>
+
+                        <div className="rounded-2xl overflow-hidden border border-white/10">
+                            <div className="bg-white/5 border-b border-white/5 px-4 py-2.5 flex items-center gap-2">
+                                <div className="flex gap-1.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
                                 </div>
-                                <LivePreview data={data} isDark={previewDark} />
+                                <span className="text-xs text-white/20 ml-2 font-mono">
+                                    /contact — {previewDark ? '🌙 dark' : '☀️ light'}
+                                </span>
                             </div>
+                            <LivePreview data={data} isDark={previewDark} />
+                        </div>
 
-                            <div className="mt-3 bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4">
-                                <p className="text-xs font-bold text-yellow-400 mb-2">💡 Tips</p>
-                                <ul className="text-xs text-zinc-500 space-y-1">
-                                    <li>• Setiap info card bisa punya lebih dari 1 baris</li>
-                                    <li>• Klik "+ Tambah baris" untuk menambah teks</li>
-                                    <li>• Heading sebaiknya HURUF KAPITAL</li>
-                                    <li>• Toggle preview untuk melihat dark & light mode</li>
-                                </ul>
-                            </div>
+                        <div className="mt-3 bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4">
+                            <p className="text-xs font-black text-yellow-400 mb-2">💡 TIPS</p>
+                            <ul className="text-xs text-white/30 space-y-1">
+                                <li>• Setiap info card bisa punya lebih dari 1 baris</li>
+                                <li>• Klik "+ Tambah baris" untuk menambah teks</li>
+                                <li>• Heading sebaiknya HURUF KAPITAL</li>
+                                <li>• Toggle preview untuk dark & light mode</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
