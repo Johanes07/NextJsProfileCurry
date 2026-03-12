@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { MapPin, Save, RefreshCw, CheckCircle, AlertCircle, Plus, Trash2, Eye, EyeOff } from 'lucide-react'
+import { MapPin, Save, RefreshCw, CheckCircle, AlertCircle, Plus, Trash2, Loader2 } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────
 interface MapMarker {
@@ -34,42 +34,44 @@ const DEFAULT_DATA: MapData = {
 function Toast({ message, type }: { message: string; type: 'success' | 'error' }) {
     return (
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl
-            ${type === 'success' ? 'bg-emerald-950 border border-emerald-500/40 text-emerald-300' : 'bg-red-950 border border-red-500/40 text-red-300'}`}>
+            ${type === 'success'
+                ? 'bg-zinc-950 border border-emerald-500/40 text-emerald-300'
+                : 'bg-zinc-950 border border-red-500/40 text-red-300'}`}>
             {type === 'success' ? <CheckCircle className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
-            <span className="text-sm font-medium">{message}</span>
+            <span className="text-sm font-bold">{message}</span>
         </div>
     )
 }
 
-// ── Number Field ──────────────────────────────────────────────
+// ── Input helpers ─────────────────────────────────────────────
+const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-yellow-400/50 transition-all'
+const labelCls = 'text-white/40 text-xs font-black tracking-widest block mb-2'
+
 function NumField({ label, value, onChange, step = '0.0001' }: {
     label: string; value: number; onChange: (v: number) => void; step?: string
 }) {
     return (
-        <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest">{label}</label>
+        <div>
+            <label className={labelCls}>{label}</label>
             <input
                 type="number" step={step} value={value}
                 onChange={e => onChange(parseFloat(e.target.value) || 0)}
-                className="w-full bg-zinc-900 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-white text-sm font-mono
-                    focus:outline-none focus:border-yellow-400/60 focus:ring-2 focus:ring-yellow-400/10 transition-all"
+                className={inputCls + ' font-mono'}
             />
         </div>
     )
 }
 
-// ── Text Field ────────────────────────────────────────────────
 function TextField({ label, value, onChange, placeholder }: {
     label: string; value: string; onChange: (v: string) => void; placeholder?: string
 }) {
     return (
-        <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest">{label}</label>
+        <div>
+            <label className={labelCls}>{label}</label>
             <input
                 type="text" value={value} placeholder={placeholder}
                 onChange={e => onChange(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-white text-sm
-                    placeholder:text-zinc-600 focus:outline-none focus:border-yellow-400/60 focus:ring-2 focus:ring-yellow-400/10 transition-all"
+                className={inputCls}
             />
         </div>
     )
@@ -78,11 +80,9 @@ function TextField({ label, value, onChange, placeholder }: {
 // ── Live Preview Map ──────────────────────────────────────────
 function LiveMapPreview({ data }: { data: MapData }) {
     const mapRef = useRef<any>(null)
-    const tileRef = useRef<any>(null)
     const markersRef = useRef<any[]>([])
     const [ready, setReady] = useState(false)
 
-    // Init map
     useEffect(() => {
         if (typeof window === 'undefined') return
         const container = document.getElementById('cms-preview-map') as any
@@ -99,7 +99,7 @@ function LiveMapPreview({ data }: { data: MapData }) {
         })
         mapRef.current = map
 
-        tileRef.current = L.tileLayer(
+        L.tileLayer(
             'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
             { attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19 }
         ).addTo(map)
@@ -107,12 +107,10 @@ function LiveMapPreview({ data }: { data: MapData }) {
         setReady(true)
     }, [])
 
-    // Update markers when data changes
     useEffect(() => {
         if (!ready || !mapRef.current) return
         const L = require('leaflet')
 
-        // Remove old markers
         markersRef.current.forEach(m => m.remove())
         markersRef.current = []
 
@@ -142,7 +140,6 @@ function LiveMapPreview({ data }: { data: MapData }) {
             markersRef.current.push(marker)
         })
 
-        // Re-center
         mapRef.current.setView([data.centerLat, data.centerLng], data.zoom)
     }, [ready, data])
 
@@ -156,7 +153,7 @@ function LiveMapPreview({ data }: { data: MapData }) {
                 .leaflet-control-zoom a { background:#111!important;color:#eab308!important;border-color:rgba(234,179,8,0.2)!important; }
                 .leaflet-control-zoom a:hover { background:#facc15!important;color:#000!important; }
             `}</style>
-            <div id="cms-preview-map" className="h-64 w-full rounded-2xl overflow-hidden border border-yellow-400/10" style={{ zIndex: 0 }} />
+            <div id="cms-preview-map" className="h-64 w-full rounded-2xl overflow-hidden border border-white/10" style={{ zIndex: 0 }} />
         </>
     )
 }
@@ -171,25 +168,25 @@ function MarkerCard({ marker, index, onChange, onDelete }: {
     const [open, setOpen] = useState(true)
 
     return (
-        <div className="bg-zinc-800/50 border border-zinc-700/60 rounded-2xl overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 cursor-pointer" onClick={() => setOpen(p => !p)}>
+        <div className="bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/[0.02] transition-all"
+                onClick={() => setOpen(p => !p)}>
                 <div className="flex items-center gap-3">
                     <div className="w-7 h-7 bg-yellow-400/10 border border-yellow-400/20 rounded-lg flex items-center justify-center shrink-0">
                         <MapPin className="w-3.5 h-3.5 text-yellow-400" />
                     </div>
                     <div>
                         <p className="text-sm font-bold text-white">{marker.title || `Marker ${index + 1}`}</p>
-                        <p className="text-xs text-zinc-500 font-mono">{marker.lat}, {marker.lng}</p>
+                        <p className="text-xs text-white/20 font-mono">{marker.lat}, {marker.lng}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <button onClick={e => { e.stopPropagation(); onDelete() }}
-                        className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-all">
+                        className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all">
                         <Trash2 className="w-3.5 h-3.5" />
                     </button>
                     <div className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
-                        <svg className="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
@@ -197,18 +194,18 @@ function MarkerCard({ marker, index, onChange, onDelete }: {
             </div>
 
             {open && (
-                <div className="px-4 pb-4 space-y-3 border-t border-zinc-700/40 pt-4">
-                    <TextField label="Title" value={marker.title} onChange={v => onChange({ ...marker, title: v })}
+                <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-4">
+                    <TextField label="TITLE" value={marker.title} onChange={v => onChange({ ...marker, title: v })}
                         placeholder="100Hours @ Location" />
-                    <TextField label="Address" value={marker.address} onChange={v => onChange({ ...marker, address: v })}
+                    <TextField label="ADDRESS" value={marker.address} onChange={v => onChange({ ...marker, address: v })}
                         placeholder="Jl. Contoh No. 1, Jakarta" />
                     <div className="grid grid-cols-2 gap-3">
-                        <NumField label="Latitude" value={marker.lat} onChange={v => onChange({ ...marker, lat: v })} />
-                        <NumField label="Longitude" value={marker.lng} onChange={v => onChange({ ...marker, lng: v })} />
+                        <NumField label="LATITUDE" value={marker.lat} onChange={v => onChange({ ...marker, lat: v })} />
+                        <NumField label="LONGITUDE" value={marker.lng} onChange={v => onChange({ ...marker, lng: v })} />
                     </div>
-                    <div className="bg-zinc-900/60 rounded-xl p-3">
-                        <p className="text-xs text-zinc-500 mb-1">💡 Cara cari koordinat:</p>
-                        <p className="text-xs text-zinc-600">Buka <span className="text-yellow-400">Google Maps</span> → klik lokasi → copy angka di URL atau klik kanan → "What's here?"</p>
+                    <div className="bg-white/[0.03] border border-white/5 rounded-xl p-3">
+                        <p className="text-xs text-white/30 mb-1">💡 Cara cari koordinat:</p>
+                        <p className="text-xs text-white/20">Buka <span className="text-yellow-400">Google Maps</span> → klik lokasi → copy angka di URL atau klik kanan → "What's here?"</p>
                     </div>
                 </div>
             )}
@@ -241,8 +238,6 @@ export default function ContactMapCMS() {
         setToast({ message, type })
         setTimeout(() => setToast(null), 3000)
     }
-
-    function handleReset() { setData(originalRef.current); setIsDirty(false) }
 
     function addMarker() {
         setData(prev => ({
@@ -288,148 +283,128 @@ export default function ContactMapCMS() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-2 border-yellow-400/30 border-t-yellow-400 rounded-full animate-spin" />
-                    <p className="text-zinc-500 text-sm">Memuat data peta...</p>
-                </div>
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white">
+        <div className="p-8 bg-black min-h-screen text-white">
             {/* Header */}
-            <div className="sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-sm border-b border-zinc-800/60">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-yellow-400/10 border border-yellow-400/30 rounded-xl flex items-center justify-center">
-                            <MapPin className="w-4 h-4 text-yellow-400" />
-                        </div>
-                        <div>
-                            <h1 className="text-base font-bold text-white">Contact Map</h1>
-                            <p className="text-xs text-zinc-500">Edit lokasi & marker peta di halaman contact</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {isDirty && (
-                            <span className="hidden sm:flex items-center gap-1.5 text-xs text-yellow-400/80 bg-yellow-400/5 border border-yellow-400/20 rounded-full px-3 py-1.5">
-                                <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />
-                                Ada perubahan
-                            </span>
-                        )}
-                        <button onClick={handleReset} disabled={!isDirty}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-700 text-zinc-400 text-sm font-medium
-                                hover:border-zinc-500 hover:text-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                            <RefreshCw className="w-3.5 h-3.5" /> Reset
-                        </button>
-                        <button onClick={handleSave} disabled={saving || !isDirty}
-                            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-yellow-400 text-black text-sm font-black
-                                hover:bg-yellow-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-yellow-400/20">
-                            {saving
-                                ? <div className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                : <Save className="w-3.5 h-3.5" />}
-                            {saving ? 'Menyimpan...' : 'Simpan'}
-                        </button>
-                    </div>
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-3xl font-black text-white">Contact Map</h1>
+                    <p className="text-white/40 text-sm mt-1">Edit lokasi & marker peta di halaman contact</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {isDirty && (
+                        <span className="hidden sm:flex items-center gap-1.5 text-xs text-yellow-400/80 bg-yellow-400/5 border border-yellow-400/20 rounded-full px-3 py-1.5">
+                            <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />
+                            Ada perubahan
+                        </span>
+                    )}
+                    <button onClick={() => { setData(originalRef.current); setIsDirty(false) }} disabled={!isDirty}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 text-sm font-black hover:bg-white/10 hover:text-white/60 disabled:opacity-30 transition-all">
+                        <RefreshCw className="w-3.5 h-3.5" /> Reset
+                    </button>
+                    <button onClick={handleSave} disabled={saving || !isDirty}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-400 text-black text-sm font-black hover:scale-105 transition-all shadow-lg shadow-yellow-400/20 disabled:opacity-40 disabled:scale-100">
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {saving ? 'Menyimpan...' : 'Simpan'}
+                    </button>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-6">
 
-                    {/* Form Panel */}
-                    <div className="space-y-6">
+                {/* ── Form Panel ─────────────────────────────────── */}
+                <div className="space-y-4">
 
-                        {/* Map Center */}
-                        <div className="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
-                            <h2 className="text-sm font-bold text-zinc-300 mb-5 flex items-center gap-2">
-                                <span className="w-1.5 h-5 bg-yellow-400 rounded-full inline-block" />
-                                Posisi Tengah Peta
-                            </h2>
-                            <div className="grid grid-cols-3 gap-4">
-                                <NumField label="Center Latitude" value={data.centerLat}
-                                    onChange={v => setData(p => ({ ...p, centerLat: v }))} />
-                                <NumField label="Center Longitude" value={data.centerLng}
-                                    onChange={v => setData(p => ({ ...p, centerLng: v }))} />
-                                <NumField label="Zoom Level" value={data.zoom} step="1"
-                                    onChange={v => setData(p => ({ ...p, zoom: Math.min(18, Math.max(1, v)) }))} />
-                            </div>
-                            <p className="text-xs text-zinc-600 mt-3">Zoom: 1 = dunia, 8 = provinsi, 13 = kota, 17 = jalan</p>
+                    {/* Map Center */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
+                        <p className="text-white/40 text-xs font-black tracking-widest mb-4">POSISI TENGAH PETA</p>
+                        <div className="grid grid-cols-3 gap-4">
+                            <NumField label="CENTER LATITUDE" value={data.centerLat}
+                                onChange={v => setData(p => ({ ...p, centerLat: v }))} />
+                            <NumField label="CENTER LONGITUDE" value={data.centerLng}
+                                onChange={v => setData(p => ({ ...p, centerLng: v }))} />
+                            <NumField label="ZOOM LEVEL" value={data.zoom} step="1"
+                                onChange={v => setData(p => ({ ...p, zoom: Math.min(18, Math.max(1, v)) }))} />
                         </div>
-
-                        {/* Markers */}
-                        <div className="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
-                            <div className="flex items-center justify-between mb-5">
-                                <h2 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
-                                    <span className="w-1.5 h-5 bg-yellow-400 rounded-full inline-block" />
-                                    Marker Lokasi
-                                    <span className="ml-1 px-2 py-0.5 bg-zinc-800 rounded-full text-xs text-zinc-500">
-                                        {data.markers.length}
-                                    </span>
-                                </h2>
-                                <button onClick={addMarker}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs font-bold hover:bg-yellow-400/20 transition-all">
-                                    <Plus className="w-3.5 h-3.5" /> Tambah Marker
-                                </button>
-                            </div>
-
-                            {data.markers.length === 0 ? (
-                                <div className="text-center py-10">
-                                    <MapPin className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-                                    <p className="text-zinc-600 text-sm">Belum ada marker. Klik "Tambah Marker".</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {data.markers.map((marker, i) => (
-                                        <MarkerCard key={marker.id} marker={marker} index={i}
-                                            onChange={m => updateMarker(i, m)}
-                                            onDelete={() => deleteMarker(i)} />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <p className="text-xs text-white/20 mt-3">Zoom: 1 = dunia · 8 = provinsi · 13 = kota · 17 = jalan</p>
                     </div>
 
-                    {/* Preview Panel */}
-                    <div className="space-y-4">
-                        <div className="sticky top-24">
-                            <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Live Preview</h2>
-                            <div className="rounded-2xl overflow-hidden border border-zinc-800/60 shadow-2xl shadow-black/50">
-                                <div className="bg-zinc-900/50 border-b border-zinc-800/60 px-4 py-2.5 flex items-center gap-2">
-                                    <div className="flex gap-1.5">
-                                        <div className="w-3 h-3 rounded-full bg-red-500/60" />
-                                        <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
-                                        <div className="w-3 h-3 rounded-full bg-green-500/60" />
-                                    </div>
-                                    <span className="text-xs text-zinc-600 ml-2 font-mono">yoursite.com/contact</span>
-                                </div>
-                                <div className="p-4">
-                                    <LiveMapPreview data={data} />
-                                </div>
-                            </div>
+                    {/* Markers */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <p className="text-white/40 text-xs font-black tracking-widest flex items-center gap-2">
+                                MARKER LOKASI
+                                <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-white/30">
+                                    {data.markers.length}
+                                </span>
+                            </p>
+                            <button onClick={addMarker}
+                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs font-black hover:bg-yellow-400/20 transition-all">
+                                <Plus className="w-3.5 h-3.5" /> Tambah Marker
+                            </button>
+                        </div>
 
-                            <div className="mt-4 bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4">
-                                <p className="text-xs font-bold text-yellow-400 mb-2">💡 Tips koordinat</p>
-                                <ul className="text-xs text-zinc-500 space-y-1">
-                                    <li>• Buka Google Maps, klik lokasi yang diinginkan</li>
-                                    <li>• Kanan klik → pilih "What's here?"</li>
-                                    <li>• Copy angka: <span className="text-zinc-400 font-mono">-6.1234, 106.5678</span></li>
-                                    <li>• Angka pertama = Latitude, kedua = Longitude</li>
-                                </ul>
+                        {data.markers.length === 0 ? (
+                            <div className="text-center py-10">
+                                <MapPin className="w-8 h-8 text-white/10 mx-auto mb-3" />
+                                <p className="text-white/20 text-sm">Belum ada marker. Klik "Tambah Marker".</p>
                             </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {data.markers.map((marker, i) => (
+                                    <MarkerCard key={marker.id} marker={marker} index={i}
+                                        onChange={m => updateMarker(i, m)}
+                                        onDelete={() => deleteMarker(i)} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
 
-                            <div className="mt-3 grid grid-cols-2 gap-3">
-                                <div className="bg-zinc-900 border border-zinc-800/60 rounded-xl p-4">
-                                    <p className="text-xs text-zinc-500 mb-1">Total Marker</p>
-                                    <p className="text-2xl font-black text-white">{data.markers.length}</p>
+                {/* ── Preview Panel ───────────────────────────────── */}
+                <div className="space-y-4">
+                    <div className="sticky top-8">
+                        <p className="text-white/40 text-xs font-black tracking-widest mb-4">LIVE PREVIEW</p>
+
+                        <div className="rounded-2xl overflow-hidden border border-white/10">
+                            <div className="bg-white/5 border-b border-white/5 px-4 py-2.5 flex items-center gap-2">
+                                <div className="flex gap-1.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/50" />
                                 </div>
-                                <div className="bg-zinc-900 border border-zinc-800/60 rounded-xl p-4">
-                                    <p className="text-xs text-zinc-500 mb-1">Zoom Level</p>
-                                    <p className="text-2xl font-black text-white">{data.zoom}</p>
-                                </div>
+                                <span className="text-xs text-white/20 ml-2 font-mono">yoursite.com/contact</span>
                             </div>
+                            <div className="p-4">
+                                <LiveMapPreview data={data} />
+                            </div>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
+                                <p className="text-white/30 text-xs mb-1">Total Marker</p>
+                                <p className="text-2xl font-black text-white">{data.markers.length}</p>
+                            </div>
+                            <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
+                                <p className="text-white/30 text-xs mb-1">Zoom Level</p>
+                                <p className="text-2xl font-black text-white">{data.zoom}</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-3 bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4">
+                            <p className="text-xs font-black text-yellow-400 mb-2">💡 TIPS KOORDINAT</p>
+                            <ul className="text-xs text-white/30 space-y-1">
+                                <li>• Buka Google Maps, klik lokasi yang diinginkan</li>
+                                <li>• Kanan klik → pilih "What's here?"</li>
+                                <li>• Copy angka: <span className="text-white/50 font-mono">-6.1234, 106.5678</span></li>
+                                <li>• Angka pertama = Latitude, kedua = Longitude</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
