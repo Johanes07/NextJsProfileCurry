@@ -79,11 +79,17 @@ export function Navbar() {
         else switchToEN()
     }
 
-    const navBg = scrolled
+    const hasLightBg = !isDark || pathname.startsWith('/career/apply')
+
+    const navBg = hasLightBg
         ? isDark
             ? 'bg-black/95 backdrop-blur-md shadow-lg shadow-yellow-500/10'
-            : 'bg-white shadow-md shadow-gray-200'
-        : 'bg-transparent'
+            : scrolled
+                ? 'bg-white shadow-md shadow-gray-200'
+                : 'bg-white/95 backdrop-blur-sm border-b border-gray-100'
+        : scrolled
+            ? 'bg-black/95 backdrop-blur-md shadow-lg shadow-yellow-500/10'
+            : 'bg-transparent'
 
     return (
         <>

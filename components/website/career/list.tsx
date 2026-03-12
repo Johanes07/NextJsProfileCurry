@@ -47,15 +47,17 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-            {/* Modal */}
-            <div className={`relative w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden
+            {/* Modal — full height sheet on mobile, centered card on desktop */}
+            <div className={`relative w-full sm:max-w-2xl flex flex-col
+                h-[92dvh] sm:h-auto sm:max-h-[85vh]
+                rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden
                 ${isDark ? 'bg-zinc-950 border border-zinc-800/60' : 'bg-white border border-gray-100'}`}>
 
-                {/* Header */}
+                {/* Header — fixed inside modal */}
                 <div className={`px-6 pt-6 pb-5 shrink-0 border-b ${isDark ? 'border-zinc-800/60' : 'border-gray-100'}`}>
                     <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0 pr-4">
@@ -80,7 +82,7 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
                     </div>
                 </div>
 
-                {/* Body */}
+                {/* Body — scrollable */}
                 <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-zinc-950' : 'bg-white'}`}>
                     <div className="space-y-6">
                         <div>
@@ -98,12 +100,16 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
                                 ))}
                             </ul>
                         </div>
-                        <button onClick={handleApply}
-                            className="w-full flex items-center justify-center gap-2 bg-yellow-400 text-black py-4 rounded-2xl font-black text-sm
-                                hover:bg-yellow-300 hover:scale-[1.01] transition-all shadow-lg shadow-yellow-400/20">
-                            Apply for this Position <ArrowUpRight className="w-4 h-4" />
-                        </button>
                     </div>
+                </div>
+
+                {/* Footer — sticky Apply button, always visible */}
+                <div className={`shrink-0 px-6 py-4 border-t ${isDark ? 'border-zinc-800/60 bg-zinc-950' : 'border-gray-100 bg-white'}`}>
+                    <button onClick={handleApply}
+                        className="w-full flex items-center justify-center gap-2 bg-yellow-400 text-black py-4 rounded-2xl font-black text-sm
+                            hover:bg-yellow-300 hover:scale-[1.01] transition-all shadow-lg shadow-yellow-400/20">
+                        Apply for this Position <ArrowUpRight className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
         </div>
@@ -120,10 +126,8 @@ function JobCard({ job, onClick, isDark }: { job: JobPosition; onClick: () => vo
                 ? 'bg-zinc-900/60 border-zinc-800/60 hover:border-yellow-400/30 hover:bg-zinc-900'
                 : 'bg-white border-gray-100 hover:border-yellow-400/40 hover:shadow-lg hover:shadow-yellow-400/5 shadow-sm'}`}>
 
-            {/* Gradient tint top-right */}
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${style.card} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl`} />
 
-            {/* Dept badge */}
             <div className="flex items-start justify-between mb-4">
                 <span className={`text-xs font-bold px-3 py-1 rounded-full border ${style.badge}`}>{job.dept}</span>
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300
@@ -133,18 +137,15 @@ function JobCard({ job, onClick, isDark }: { job: JobPosition; onClick: () => vo
                 </div>
             </div>
 
-            {/* Title */}
             <h3 className={`text-lg font-black mb-3 leading-tight group-hover:text-yellow-400 transition-colors duration-200
                 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {job.title}
             </h3>
 
-            {/* Desc preview */}
             <p className={`text-xs leading-relaxed mb-5 line-clamp-2 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
                 {job.desc}
             </p>
 
-            {/* Meta */}
             <div className="flex flex-wrap gap-2">
                 <span className={`text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 font-medium
                     ${isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
@@ -275,7 +276,6 @@ export function CareerList() {
                 </div>
             </div>
 
-            {/* Modal */}
             {selected && (
                 <JobModal job={selected} isDark={isDark} onClose={() => setSelected(null)} />
             )}
