@@ -161,61 +161,63 @@ export default function MenuAdminPage() {
                 </div>
             ) : (
                 <div className="bg-zinc-950 rounded-3xl border border-white/5 overflow-hidden">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-white/5">
-                                <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">ITEM</th>
-                                <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">KATEGORI</th>
-                                <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">HARGA</th>
-                                <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">STATUS</th>
-                                <th className="text-right px-6 py-4 text-white/30 text-xs font-black tracking-widest">AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map((item) => (
-                                <tr key={item.id} className="border-b border-white/5 hover:bg-white/2 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            {item.imageUrl ? (
-                                                <img src={item.imageUrl} className="w-10 h-10 rounded-xl object-cover" />
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                                                    <UtensilsCrossed className="w-4 h-4 text-white/20" />
-                                                </div>
-                                            )}
-                                            <div>
-                                                <p className="text-white font-black text-sm">{item.name}</p>
-                                                <p className="text-white/30 text-xs line-clamp-1">{item.desc}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${catColor[item.category]}`}>
-                                            {categories.find(c => c.value === item.category)?.label}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-yellow-400 font-black text-sm">{item.price}</td>
-                                    <td className="px-6 py-4">
-                                        <button onClick={() => handleToggle(item)} className="transition-all">
-                                            {item.isActive
-                                                ? <ToggleRight className="w-6 h-6 text-yellow-400" />
-                                                : <ToggleLeft className="w-6 h-6 text-white/20" />}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex gap-2 justify-end">
-                                            <button onClick={() => openEdit(item)} className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center hover:bg-yellow-400/10 hover:text-yellow-400 text-white/40 transition-all">
-                                                <Pencil className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button onClick={() => handleDelete(item.id)} className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center hover:bg-red-400/10 hover:text-red-400 text-white/40 transition-all">
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[640px]">
+                            <thead>
+                                <tr className="border-b border-white/5">
+                                    <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">ITEM</th>
+                                    <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">KATEGORI</th>
+                                    <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">HARGA</th>
+                                    <th className="text-left px-6 py-4 text-white/30 text-xs font-black tracking-widest">STATUS</th>
+                                    <th className="text-right px-6 py-4 text-white/30 text-xs font-black tracking-widest">AKSI</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {filtered.map((item) => (
+                                    <tr key={item.id} className="border-b border-white/5 hover:bg-white/2 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                {item.imageUrl ? (
+                                                    <img src={item.imageUrl} className="w-10 h-10 rounded-xl object-cover" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                                                        <UtensilsCrossed className="w-4 h-4 text-white/20" />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className="text-white font-black text-sm">{item.name}</p>
+                                                    <p className="text-white/30 text-xs line-clamp-1">{item.desc}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`text-xs font-bold px-2 py-1 rounded-lg ${catColor[item.category]}`}>
+                                                {categories.find(c => c.value === item.category)?.label}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-yellow-400 font-black text-sm">{item.price}</td>
+                                        <td className="px-6 py-4">
+                                            <button onClick={() => handleToggle(item)} className="transition-all">
+                                                {item.isActive
+                                                    ? <ToggleRight className="w-6 h-6 text-yellow-400" />
+                                                    : <ToggleLeft className="w-6 h-6 text-white/20" />}
+                                            </button>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-2 justify-end">
+                                                <button onClick={() => openEdit(item)} className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center hover:bg-yellow-400/10 hover:text-yellow-400 text-white/40 transition-all">
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button onClick={() => handleDelete(item.id)} className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center hover:bg-red-400/10 hover:text-red-400 text-white/40 transition-all">
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 

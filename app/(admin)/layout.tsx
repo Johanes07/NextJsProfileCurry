@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { AdminSidebar } from '@/components/admin/sidebar'
+import { AdminSidebar, MobileTopBarSpacer } from '@/components/admin/sidebar'
 
 export default async function AdminLayout({
     children,
@@ -18,6 +18,7 @@ export default async function AdminLayout({
         <div className="flex h-screen bg-zinc-950">
             <AdminSidebar />
             <main className="flex-1 overflow-auto bg-zinc-900">
+                <MobileTopBarSpacer />
                 {children}
             </main>
         </div>
