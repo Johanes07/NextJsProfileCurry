@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MapPin, Clock, ArrowUpRight, X } from 'lucide-react'
+import { MapPin, Clock, ArrowUpRight, X, Loader2 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
 
@@ -33,6 +33,7 @@ const getDeptStyle = (dept: string) =>
 function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => void; isDark: boolean }) {
     const style = getDeptStyle(job.dept)
     const router = useRouter()
+    const [applying, setApplying] = useState(false)
 
     useEffect(() => {
         document.body.style.overflow = 'hidden'
@@ -41,7 +42,11 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
         return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey) }
     }, [onClose])
 
-    function handleApply() {
+    async function handleApply() {
+        if (applying) return
+        setApplying(true)
+        // Small artificial delay so the loading state is visible before navigation
+        await new Promise(res => setTimeout(res, 600))
         onClose()
         router.push(`/career/apply?position=${encodeURIComponent(job.title)}&id=${job.id}`)
     }
@@ -74,9 +79,11 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
                             </div>
                             <h2 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>{job.title}</h2>
                         </div>
-                        <button onClick={onClose}
+                        <button
+                            onClick={onClose}
+                            disabled={applying}
                             className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all
-                                ${isDark ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}>
+                                ${isDark ? 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white disabled:opacity-40' : 'bg-gray-100 text-gray-400 hover:bg-gray-200 disabled:opacity-40'}`}>
                             <X className="w-4 h-4" />
                         </button>
                     </div>
@@ -105,10 +112,25 @@ function JobModal({ job, onClose, isDark }: { job: JobPosition; onClose: () => v
 
                 {/* Footer — sticky Apply button, always visible */}
                 <div className={`shrink-0 px-6 py-4 border-t ${isDark ? 'border-zinc-800/60 bg-zinc-950' : 'border-gray-100 bg-white'}`}>
-                    <button onClick={handleApply}
-                        className="w-full flex items-center justify-center gap-2 bg-yellow-400 text-black py-4 rounded-2xl font-black text-sm
-                            hover:bg-yellow-300 hover:scale-[1.01] transition-all shadow-lg shadow-yellow-400/20">
-                        Apply for this Position <ArrowUpRight className="w-4 h-4" />
+                    <button
+                        onClick={handleApply}
+                        disabled={applying}
+                        className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-black text-sm
+                            transition-all shadow-lg
+                            ${applying
+                                ? 'bg-yellow-400/70 text-black/60 cursor-not-allowed shadow-yellow-400/10 scale-[0.99]'
+                                : 'bg-yellow-400 text-black hover:bg-yellow-300 hover:scale-[1.01] shadow-yellow-400/20'
+                            }`}>
+                        {applying ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Opening Application…
+                            </>
+                        ) : (
+                            <>
+                                Apply for this Position <ArrowUpRight className="w-4 h-4" />
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
