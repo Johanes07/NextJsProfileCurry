@@ -4,11 +4,11 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Lock, Mail, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Lock, User, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
     const router = useRouter()
-    const [email, setEmail] = useState('')
+    const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
@@ -20,13 +20,13 @@ export default function LoginPage() {
         setError('')
 
         const result = await signIn('credentials', {
-            email,
+            username,
             password,
             redirect: false,
         })
 
         if (result?.error) {
-            setError('Email atau password salah!')
+            setError('Username atau password salah!')
             setLoading(false)
         } else {
             router.push('/dashboard')
@@ -36,7 +36,7 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
 
-            {/* ── Background image ── */}
+            {/* Background image */}
             <Image
                 src="/images/bg7.jpg"
                 alt="Background"
@@ -46,13 +46,10 @@ export default function LoginPage() {
                 quality={90}
             />
 
-            {/* ── Dark overlay dengan gradient ── */}
+            {/* Dark overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/80" />
 
-            {/* ── Subtle vignette edges ── */}
-            <div className="absolute inset-0 bg-radial-[ellipse_at_center] from-transparent to-black/40" />
-
-            {/* ── Card ── */}
+            {/* Card */}
             <div className="relative z-10 w-full max-w-sm">
 
                 {/* Logo & brand */}
@@ -79,20 +76,21 @@ export default function LoginPage() {
                             </div>
                         )}
 
-                        {/* Email */}
+                        {/* Username */}
                         <div>
                             <label className="block text-xs font-black uppercase tracking-widest text-white/40 mb-1.5">
-                                Email
+                                Username
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                                 <input
-                                    id="email"
-                                    type="email"
-                                    placeholder="admin@company.com"
-                                    value={email}
-                                    onChange={e => setEmail(e.target.value)}
+                                    id="username"
+                                    type="text"
+                                    placeholder="admin"
+                                    value={username}
+                                    onChange={e => setUsername(e.target.value)}
                                     required
+                                    autoComplete="username"
                                     className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 text-sm
                                         rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-yellow-400/50
                                         focus:ring-2 focus:ring-yellow-400/10 transition-all"
@@ -114,6 +112,7 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
                                     required
+                                    autoComplete="current-password"
                                     className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 text-sm
                                         rounded-xl pl-10 pr-11 py-3 focus:outline-none focus:border-yellow-400/50
                                         focus:ring-2 focus:ring-yellow-400/10 transition-all"
