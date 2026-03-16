@@ -73,6 +73,21 @@ export function buildEmailHtml(data: Record<string, any>): string {
         ).join('')
         : row('Organisasi', 'Tidak ada')
 
+    // ── Duplicate warning banner (only shown when flagged) ────
+    const dupWarning = data._isDuplicateNik
+        ? `<tr>
+            <td style="background-color:#7a0000;padding:14px 32px;">
+                <p style="margin:0;font-size:11px;font-weight:900;letter-spacing:2px;color:#ffaaaa;font-family:Arial,sans-serif;text-transform:uppercase;">
+                    &#9888;&nbsp; PERHATIAN: NIK INI PERNAH MELAMAR POSISI LAIN
+                </p>
+                <p style="margin:6px 0 0;font-size:12px;color:#ffcccc;font-family:Arial,sans-serif;">
+                    NIK <strong>${data.nik}</strong> sebelumnya melamar posisi:
+                    <strong>${data._prevPositions}</strong>
+                </p>
+            </td>
+        </tr>`
+        : ''
+
     return `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -83,33 +98,25 @@ export function buildEmailHtml(data: Record<string, any>): string {
 </head>
 <body style="margin:0;padding:0;background-color:#f0f0eb;">
 
-<!-- Outer wrapper -->
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f0eb;">
     <tr>
         <td align="center" style="padding:32px 16px;">
-
-            <!-- Email card -->
             <table width="620" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;width:100%;background-color:#ffffff;">
 
-                <!-- ══ HEADER ══ -->
+                <!-- HEADER -->
                 <tr>
                     <td style="background-color:#111111;padding:24px 32px;">
                         <table cellpadding="0" cellspacing="0" border="0">
                             <tr>
-                                <!-- Logo box -->
                                 <td style="background-color:#eab308;width:52px;height:52px;text-align:center;vertical-align:middle;">
                                     <table cellpadding="0" cellspacing="0" border="0" width="52" height="52">
-                                        <tr>
-                                            <td align="center" valign="middle">
-                                                <span style="font-size:24px;font-weight:900;color:#000000;font-family:Arial,sans-serif;line-height:1;">C</span>
-                                            </td>
-                                        </tr>
+                                        <tr><td align="center" valign="middle">
+                                            <span style="font-size:24px;font-weight:900;color:#000000;font-family:Arial,sans-serif;line-height:1;">C</span>
+                                        </td></tr>
                                     </table>
                                 </td>
-                                <!-- Brand name -->
                                 <td style="padding-left:16px;vertical-align:middle;">
                                     <table cellpadding="0" cellspacing="0" border="0">
-                                        <!-- Row 1: [100 box] [HOURS] -->
                                         <tr>
                                             <td style="padding-bottom:4px;">
                                                 <table cellpadding="0" cellspacing="0" border="0">
@@ -124,7 +131,6 @@ export function buildEmailHtml(data: Record<string, any>): string {
                                                 </table>
                                             </td>
                                         </tr>
-                                        <!-- Row 2: CURRY -->
                                         <tr>
                                             <td>
                                                 <span style="font-size:22px;font-weight:900;color:#eab308;font-family:Arial,sans-serif;letter-spacing:5px;text-transform:uppercase;">CURRY</span>
@@ -137,14 +143,17 @@ export function buildEmailHtml(data: Record<string, any>): string {
                     </td>
                 </tr>
 
-                <!-- ══ SUBTITLE BAR ══ -->
+                <!-- SUBTITLE BAR -->
                 <tr>
                     <td style="background-color:#1a1a1a;padding:10px 32px;">
                         <span style="font-size:10px;font-weight:700;color:#777777;font-family:Arial,sans-serif;letter-spacing:3px;text-transform:uppercase;">&#9993; &nbsp; LAMARAN KERJA BARU MASUK</span>
                     </td>
                 </tr>
 
-                <!-- ══ POSITION BANNER ══ -->
+                <!-- DUPLICATE WARNING (conditional) -->
+                ${dupWarning}
+
+                <!-- POSITION BANNER -->
                 <tr>
                     <td style="background-color:#eab308;padding:18px 32px;">
                         <p style="margin:0;font-size:10px;font-weight:900;letter-spacing:2px;color:#7a5f00;font-family:Arial,sans-serif;text-transform:uppercase;">POSISI YANG DILAMAR</p>
@@ -152,7 +161,7 @@ export function buildEmailHtml(data: Record<string, any>): string {
                     </td>
                 </tr>
 
-                <!-- ══ BODY ══ -->
+                <!-- BODY -->
                 <tr>
                     <td style="padding:8px 32px 32px;">
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -197,12 +206,12 @@ export function buildEmailHtml(data: Record<string, any>): string {
                     </td>
                 </tr>
 
-                <!-- ══ ACCENT STRIPE ══ -->
+                <!-- ACCENT STRIPE -->
                 <tr>
                     <td style="background-color:#eab308;height:4px;font-size:0;line-height:0;">&nbsp;</td>
                 </tr>
 
-                <!-- ══ FOOTER ══ -->
+                <!-- FOOTER -->
                 <tr>
                     <td style="background-color:#111111;padding:18px 32px;">
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -213,11 +222,8 @@ export function buildEmailHtml(data: Record<string, any>): string {
                                         <span style="color:#eab308;font-weight:700;">
                                             ${new Date().toLocaleString('id-ID', {
         timeZone: 'Asia/Jakarta',
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
     })} WIB
                                         </span>
                                     </p>
@@ -231,12 +237,9 @@ export function buildEmailHtml(data: Record<string, any>): string {
                 </tr>
 
             </table>
-            <!-- /Email card -->
-
         </td>
     </tr>
 </table>
-<!-- /Outer wrapper -->
 
 </body>
 </html>`
@@ -254,12 +257,39 @@ export async function POST(req: NextRequest) {
         const email = get('email')
         const nik = get('nik')
         const noTelp = get('noTelp')
+        const positionId = get('positionId') || null
+        const positionTitle = get('positionTitle')
 
         if (!namaLengkap || !email || !nik || !noTelp) {
             return NextResponse.json({ error: 'Field wajib tidak lengkap' }, { status: 400 })
         }
 
-        // ── Parse & validasi file ─────────────────────────────
+        // ── Cek duplikat NIK ──────────────────────────────────
+        // Cari semua lamaran sebelumnya dengan NIK yang sama
+        const existingByNik = await prisma.jobApplication.findMany({
+            where: { nik },
+            select: { positionId: true, positionTitle: true, createdAt: true },
+            orderBy: { createdAt: 'desc' },
+        })
+
+        if (existingByNik.length > 0) {
+            // Cek apakah NIK ini sudah pernah apply posisi yang SAMA
+            const samePosition = existingByNik.find(app =>
+                // Cek by positionId jika ada, fallback ke positionTitle
+                positionId
+                    ? app.positionId === positionId
+                    : app.positionTitle.toLowerCase() === positionTitle.toLowerCase()
+            )
+
+            if (samePosition) {
+                return NextResponse.json({
+                    error: `NIK ini sudah pernah melamar posisi "${positionTitle}". Setiap NIK hanya dapat melamar satu posisi yang sama.`,
+                    code: 'DUPLICATE_APPLICATION',
+                }, { status: 409 })
+            }
+        }
+
+        // ── Validasi ukuran file ──────────────────────────────
         const cvFile = formData.get('cv') as File | null
         const fotoFile = formData.get('foto') as File | null
 
@@ -272,7 +302,7 @@ export async function POST(req: NextRequest) {
 
         // ── Build app data ────────────────────────────────────
         const appData = {
-            positionTitle: get('positionTitle'),
+            positionTitle,
             namaLengkap,
             alamatKTP: get('alamatKTP'),
             alamatDomisili: get('alamatDomisili'),
@@ -318,8 +348,6 @@ export async function POST(req: NextRequest) {
         }
 
         // ── Save to DB ────────────────────────────────────────
-        const positionId = get('positionId') || null
-
         const saved = await prisma.jobApplication.create({
             data: {
                 ...appData,
@@ -332,7 +360,6 @@ export async function POST(req: NextRequest) {
         })
 
         // ── Cari email HRD dari JobPosition ───────────────────
-        // Priority: hrdEmail di job position → HRD_EMAIL env → fallback
         let hrdEmail = process.env.HRD_EMAIL ?? 'hrd@100hourscurry.com'
 
         if (positionId) {
@@ -340,22 +367,28 @@ export async function POST(req: NextRequest) {
                 where: { id: positionId },
                 select: { hrdEmail: true }
             })
-            if (position?.hrdEmail) {
-                hrdEmail = position.hrdEmail
-            }
+            if (position?.hrdEmail) hrdEmail = position.hrdEmail
         }
 
-        // ── Build email attachments ───────────────────────────
+        // ── Build attachments ─────────────────────────────────
         const attachments: { filename: string; content: Buffer }[] = []
         if (cvBuffer && cvFileName) attachments.push({ filename: cvFileName, content: cvBuffer })
         if (fotoBuffer && fotoFileName) attachments.push({ filename: fotoFileName, content: fotoBuffer })
+
+        // ── Enrich email data dengan info duplikat NIK (posisi lain) ──
+        // Kalau NIK ini sebelumnya apply posisi lain, flagging ke HRD via email
+        const emailData = {
+            ...appData,
+            _isDuplicateNik: existingByNik.length > 0,
+            _prevPositions: existingByNik.map(a => a.positionTitle).join(', '),
+        }
 
         // ── Send email ────────────────────────────────────────
         await transporter.sendMail({
             from: `"Career Portal 100Hours" <${process.env.SMTP_USER}>`,
             to: hrdEmail,
             subject: `[Lamaran] ${appData.positionTitle} — ${appData.namaLengkap}`,
-            html: buildEmailHtml(appData),
+            html: buildEmailHtml(emailData),
             attachments,
         })
 

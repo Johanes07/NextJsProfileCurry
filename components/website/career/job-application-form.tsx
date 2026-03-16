@@ -39,25 +39,23 @@ const MAX_SIZE = 200 * 1024
 // ── Shared styles ─────────────────────────────────────────────
 function useStyles(isDark: boolean) {
     return {
-        // Main input
         inp: `w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200
             ${isDark
                 ? 'bg-white/5 border-white/10 text-white placeholder-white/20 focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/10'
-                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-300 focus:border-yellow-400/60 focus:ring-2 focus:ring-yellow-400/10'}`,
-        // Label
-        lbl: `block text-xs font-black uppercase tracking-widest mb-1.5 ${isDark ? 'text-white/40' : 'text-gray-400'}`,
-        // Card section (outer)
-        card: `rounded-2xl border p-6 space-y-4 ${isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-gray-100 shadow-sm'}`,
-        // Sub-card inside (e.g. pengalaman item)
-        sub: `rounded-xl border p-4 space-y-3 ${isDark ? 'bg-white/[0.03] border-white/5' : 'bg-gray-50 border-gray-100'}`,
-        // Divider
-        div: `border-b mb-6 pb-4 ${isDark ? 'border-white/5' : 'border-gray-100'}`,
+                : 'bg-white border-stone-200 text-gray-900 placeholder-stone-300 focus:border-yellow-500/50 focus:ring-2 focus:ring-yellow-400/10 shadow-sm'}`,
+        lbl: `block text-xs font-black uppercase tracking-widest mb-1.5 ${isDark ? 'text-white/40' : 'text-stone-500'}`,
+        // Card uses warm tinted bg in light mode — not pure white
+        card: `rounded-2xl border p-6 space-y-4 ${isDark ? 'bg-white/[0.03] border-white/5' : 'bg-amber-50/60 border-stone-200/80 shadow-sm'}`,
+        sub: `rounded-xl border p-4 space-y-3 ${isDark ? 'bg-white/[0.03] border-white/5' : 'bg-white border-stone-200/60 shadow-sm'}`,
+        div: `border-b mb-6 pb-4 ${isDark ? 'border-white/5' : 'border-stone-200/60'}`,
+        // Page background (warm off-white, not pure gray)
+        page: isDark ? 'bg-black' : 'bg-stone-100',
     }
 }
 
 // ── Select Dropdown ───────────────────────────────────────────
-function Sel({ label, value, onChange, options, isDark }: {
-    label: string; value: string; onChange: (v: string) => void; options: string[]; isDark: boolean
+function Sel({ label, value, onChange, options, isDark, required }: {
+    label: string; value: string; onChange: (v: string) => void; options: string[]; isDark: boolean; required?: boolean
 }) {
     const { inp, lbl } = useStyles(isDark)
     const [open, setOpen] = useState(false)
@@ -71,20 +69,24 @@ function Sel({ label, value, onChange, options, isDark }: {
 
     return (
         <div>
-            <label className={lbl}>{label}</label>
+            <label className={lbl}>{label}{required && <span className="text-red-400 ml-1">*</span>}</label>
             <div className="relative" ref={ref}>
                 <button type="button" onClick={() => setOpen(p => !p)}
-                    className={`${inp} flex items-center justify-between text-left ${!value ? (isDark ? 'text-white/20' : 'text-gray-300') : ''}`}>
+                    className={`${inp} flex items-center justify-between text-left ${!value ? (isDark ? 'text-white/20' : 'text-stone-300') : ''}`}>
                     <span>{value || 'Pilih...'}</span>
-                    <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''} ${isDark ? 'text-white/30' : 'text-gray-400'}`} />
+                    <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''} ${isDark ? 'text-white/30' : 'text-stone-400'}`} />
                 </button>
                 {open && (
                     <div className={`absolute z-20 w-full mt-1 rounded-xl border shadow-xl overflow-hidden max-h-56 overflow-y-auto
-                        ${isDark ? 'bg-zinc-900 border-white/10' : 'bg-white border-gray-200'}`}>
+                        ${isDark ? 'bg-zinc-900 border-white/10' : 'bg-white border-stone-200 shadow-lg'}`}>
                         {options.map(o => (
                             <button key={o} type="button" onClick={() => { onChange(o); setOpen(false) }}
                                 className={`w-full text-left px-4 py-2.5 text-sm transition-all
-                                    ${value === o ? 'bg-yellow-400 text-black font-black' : isDark ? 'text-white/70 hover:bg-white/5' : 'text-gray-700 hover:bg-gray-50'}`}>
+                                    ${value === o
+                                        ? 'bg-yellow-400 text-black font-black'
+                                        : isDark
+                                            ? 'text-white/70 hover:bg-white/5'
+                                            : 'text-stone-700 hover:bg-amber-50'}`}>
                                 {o}
                             </button>
                         ))}
@@ -95,23 +97,23 @@ function Sel({ label, value, onChange, options, isDark }: {
     )
 }
 
-// ── Radio Group ───────────────────────────────────────────────
-function RadioGroup({ label, value, onChange, options, isDark }: {
+// ── Toggle Pills — only for 2-3 short options ─────────────────
+function TogglePills({ label, value, onChange, options, isDark }: {
     label: string; value: string; onChange: (v: string) => void; options: string[]; isDark: boolean
 }) {
     const { lbl } = useStyles(isDark)
     return (
         <div>
             <label className={lbl}>{label}</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
                 {options.map(o => (
                     <button key={o} type="button" onClick={() => onChange(o)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-black border transition-all
                             ${value === o
                                 ? 'bg-yellow-400 text-black border-yellow-400 shadow-sm shadow-yellow-400/20'
                                 : isDark
                                     ? 'bg-white/5 text-white/40 border-white/10 hover:border-white/20 hover:text-white/60'
-                                    : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'}`}>
+                                    : 'bg-white text-stone-400 border-stone-200 hover:border-stone-300 hover:text-stone-600 shadow-sm'}`}>
                         {o}
                     </button>
                 ))}
@@ -160,28 +162,28 @@ function FileUpload({ label, hint, accept, file, onFile, isDark }: {
                 onChange={e => { const f = e.target.files?.[0]; if (f) handle(f); e.target.value = '' }} />
             {file ? (
                 <div className={`flex items-center justify-between px-4 py-3 rounded-xl border
-                    ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-stone-200 shadow-sm'}`}>
                     <div className="flex items-center gap-2 min-w-0">
-                        <CheckCircle className="w-4 h-4 text-yellow-400 shrink-0" />
-                        <span className={`truncate text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{file.name}</span>
-                        <span className={`text-xs shrink-0 ${isDark ? 'text-white/30' : 'text-gray-400'}`}>({(file.size / 1024).toFixed(0)} KB)</span>
+                        <CheckCircle className="w-4 h-4 text-yellow-500 shrink-0" />
+                        <span className={`truncate text-sm font-medium ${isDark ? 'text-white' : 'text-stone-800'}`}>{file.name}</span>
+                        <span className={`text-xs shrink-0 ${isDark ? 'text-white/30' : 'text-stone-400'}`}>({(file.size / 1024).toFixed(0)} KB)</span>
                     </div>
                     <button type="button" onClick={() => onFile(null)}
-                        className={`ml-2 transition-colors ${isDark ? 'text-white/30 hover:text-red-400' : 'text-gray-400 hover:text-red-400'}`}>
+                        className={`ml-2 transition-colors ${isDark ? 'text-white/30 hover:text-red-400' : 'text-stone-400 hover:text-red-400'}`}>
                         <X className="w-4 h-4" />
                     </button>
                 </div>
             ) : (
                 <button type="button" onClick={() => ref.current?.click()}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed text-sm font-bold transition-all
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-4 rounded-xl border-2 border-dashed text-sm font-bold transition-all
                         ${isDark
                             ? 'border-white/10 text-white/30 hover:border-yellow-400/40 hover:text-yellow-400'
-                            : 'border-gray-200 text-gray-400 hover:border-yellow-400/40 hover:text-yellow-500'}`}>
+                            : 'border-stone-300 text-stone-400 hover:border-yellow-500/50 hover:text-yellow-600 bg-white'}`}>
                     <Upload className="w-4 h-4" /> Pilih File
                 </button>
             )}
             {err && <p className="text-red-400 text-xs mt-1.5">{err}</p>}
-            <p className={`text-xs mt-1.5 ${isDark ? 'text-white/20' : 'text-gray-400'}`}>{hint}</p>
+            <p className={`text-xs mt-1.5 ${isDark ? 'text-white/20' : 'text-stone-400'}`}>{hint}</p>
         </div>
     )
 }
@@ -201,11 +203,11 @@ function PengalamanEditor({ items, onChange, isDark }: {
             {items.map((item, i) => (
                 <div key={i} className={sub}>
                     <div className="flex items-center justify-between">
-                        <p className={`text-xs font-black tracking-widest ${isDark ? 'text-white/30' : 'text-gray-400'}`}>
+                        <p className={`text-xs font-black tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>
                             PENGALAMAN #{i + 1}
                         </p>
                         <button type="button" onClick={() => remove(i)}
-                            className={`transition-colors ${isDark ? 'text-white/20 hover:text-red-400' : 'text-gray-300 hover:text-red-400'}`}>
+                            className={`transition-colors ${isDark ? 'text-white/20 hover:text-red-400' : 'text-stone-300 hover:text-red-400'}`}>
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
@@ -237,7 +239,7 @@ function PengalamanEditor({ items, onChange, isDark }: {
                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-sm font-bold transition-all
                     ${isDark
                         ? 'border-white/10 text-white/30 hover:border-yellow-400/40 hover:text-yellow-400'
-                        : 'border-gray-200 text-gray-400 hover:border-yellow-400/40 hover:text-yellow-500'}`}>
+                        : 'border-stone-300 text-stone-400 hover:border-yellow-500/50 hover:text-yellow-600 bg-white/60'}`}>
                 <Plus className="w-4 h-4" /> Tambah Pengalaman Kerja
             </button>
         </div>
@@ -259,9 +261,9 @@ function SeminarEditor({ items, onChange, isDark }: {
             {items.map((item, i) => (
                 <div key={i} className={sub}>
                     <div className="flex items-center justify-between">
-                        <p className={`text-xs font-black tracking-widest ${isDark ? 'text-white/30' : 'text-gray-400'}`}>#{i + 1}</p>
+                        <p className={`text-xs font-black tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>#{i + 1}</p>
                         <button type="button" onClick={() => remove(i)}
-                            className={`transition-colors ${isDark ? 'text-white/20 hover:text-red-400' : 'text-gray-300 hover:text-red-400'}`}>
+                            className={`transition-colors ${isDark ? 'text-white/20 hover:text-red-400' : 'text-stone-300 hover:text-red-400'}`}>
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
@@ -285,7 +287,7 @@ function SeminarEditor({ items, onChange, isDark }: {
                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-sm font-bold transition-all
                     ${isDark
                         ? 'border-white/10 text-white/30 hover:border-yellow-400/40 hover:text-yellow-400'
-                        : 'border-gray-200 text-gray-400 hover:border-yellow-400/40 hover:text-yellow-500'}`}>
+                        : 'border-stone-300 text-stone-400 hover:border-yellow-500/50 hover:text-yellow-600 bg-white/60'}`}>
                 <Plus className="w-4 h-4" /> Tambah Seminar / Kursus
             </button>
         </div>
@@ -307,9 +309,9 @@ function OrgEditor({ items, onChange, isDark }: {
             {items.map((item, i) => (
                 <div key={i} className={sub}>
                     <div className="flex items-center justify-between">
-                        <p className={`text-xs font-black tracking-widest ${isDark ? 'text-white/30' : 'text-gray-400'}`}>#{i + 1}</p>
+                        <p className={`text-xs font-black tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>#{i + 1}</p>
                         <button type="button" onClick={() => remove(i)}
-                            className={`transition-colors ${isDark ? 'text-white/20 hover:text-red-400' : 'text-gray-300 hover:text-red-400'}`}>
+                            className={`transition-colors ${isDark ? 'text-white/20 hover:text-red-400' : 'text-stone-300 hover:text-red-400'}`}>
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
@@ -333,7 +335,7 @@ function OrgEditor({ items, onChange, isDark }: {
                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-sm font-bold transition-all
                     ${isDark
                         ? 'border-white/10 text-white/30 hover:border-yellow-400/40 hover:text-yellow-400'
-                        : 'border-gray-200 text-gray-400 hover:border-yellow-400/40 hover:text-yellow-500'}`}>
+                        : 'border-stone-300 text-stone-400 hover:border-yellow-500/50 hover:text-yellow-600 bg-white/60'}`}>
                 <Plus className="w-4 h-4" /> Tambah Organisasi / Kegiatan
             </button>
         </div>
@@ -343,11 +345,12 @@ function OrgEditor({ items, onChange, isDark }: {
 // ── Section Header ────────────────────────────────────────────
 function SectionHeader({ icon: Icon, title, isDark }: { icon: any; title: string; isDark: boolean }) {
     return (
-        <div className={`flex items-center gap-3 pb-4 border-b ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
-            <div className="w-8 h-8 bg-yellow-400/10 border border-yellow-400/20 rounded-xl flex items-center justify-center shrink-0">
-                <Icon className="w-4 h-4 text-yellow-400" />
+        <div className={`flex items-center gap-3 pb-4 border-b ${isDark ? 'border-white/5' : 'border-stone-200/60'}`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0
+                ${isDark ? 'bg-yellow-400/10 border border-yellow-400/20' : 'bg-yellow-400 shadow-sm shadow-yellow-400/30'}`}>
+                <Icon className={`w-4 h-4 ${isDark ? 'text-yellow-400' : 'text-black'}`} />
             </div>
-            <h3 className={`font-black text-sm uppercase tracking-widest ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+            <h3 className={`font-black text-sm uppercase tracking-widest ${isDark ? 'text-white' : 'text-stone-800'}`}>{title}</h3>
         </div>
     )
 }
@@ -376,7 +379,7 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
     useEffect(() => { setMounted(true) }, [])
 
     const isDark = mounted ? resolvedTheme === 'dark' : true
-    const { inp, lbl, card } = useStyles(isDark)
+    const { inp, lbl, card, page } = useStyles(isDark)
     const set = (k: keyof FormData) => (v: string) => setForm(prev => ({ ...prev, [k]: v }))
 
     async function handleSubmit(e: React.FormEvent) {
@@ -411,28 +414,32 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
     // ── Success screen ────────────────────────────────────────
     if (result === 'success') {
         return (
-            <div className={`min-h-screen py-20 flex flex-col items-center justify-center text-center px-6 transition-colors ${isDark ? 'bg-black' : 'bg-white'}`}>
-                <div className="w-20 h-20 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center mb-6">
-                    <CheckCircle className="w-10 h-10 text-yellow-400" />
+            <div className={`min-h-screen py-20 flex flex-col items-center justify-center text-center px-6 transition-colors ${isDark ? 'bg-black' : 'bg-stone-100'}`}>
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6
+                    ${isDark ? 'bg-yellow-400/10 border border-yellow-400/20' : 'bg-yellow-400 shadow-xl shadow-yellow-400/30'}`}>
+                    <CheckCircle className={`w-10 h-10 ${isDark ? 'text-yellow-400' : 'text-black'}`} />
                 </div>
-                <h2 className={`text-3xl font-black mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Lamaran Terkirim!</h2>
-                <p className={`max-w-sm text-sm leading-relaxed ${isDark ? 'text-white/40' : 'text-gray-500'}`}>
-                    Terima kasih, <strong className={isDark ? 'text-white' : 'text-gray-800'}>{form.namaLengkap}</strong>! Lamaran kamu untuk posisi <strong className="text-yellow-500">{form.positionTitle}</strong> sudah kami terima. Kami akan menghubungimu dalam waktu dekat.
+                <h2 className={`text-3xl font-black mb-3 ${isDark ? 'text-white' : 'text-stone-900'}`}>Lamaran Terkirim!</h2>
+                <p className={`max-w-sm text-sm leading-relaxed ${isDark ? 'text-white/40' : 'text-stone-500'}`}>
+                    Terima kasih, <strong className={isDark ? 'text-white' : 'text-stone-800'}>{form.namaLengkap}</strong>! Lamaran kamu untuk posisi <strong className="text-yellow-500">{form.positionTitle}</strong> sudah kami terima. Kami akan menghubungimu dalam waktu dekat.
                 </p>
             </div>
         )
     }
 
     return (
-        <section className={`py-16 transition-colors duration-300 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
+        <section className={`py-16 transition-colors duration-300 ${page}`}>
             <div className="max-w-3xl mx-auto px-4 sm:px-6">
 
                 {/* Page Header */}
                 <div className="mb-10">
-                    <span className="inline-block bg-yellow-400/10 text-yellow-500 text-xs font-bold px-4 py-2 rounded-full mb-5 border border-yellow-400/20">
+                    <span className={`inline-block text-xs font-bold px-4 py-2 rounded-full mb-5 border
+                        ${isDark
+                            ? 'bg-yellow-400/10 text-yellow-500 border-yellow-400/20'
+                            : 'bg-yellow-400 text-black border-yellow-400 shadow-sm shadow-yellow-400/20'}`}>
                         Form Lamaran Kerja
                     </span>
-                    <h2 className={`text-4xl font-black leading-none ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <h2 className={`text-4xl font-black leading-none ${isDark ? 'text-white' : 'text-stone-900'}`}>
                         DAFTAR
                         <span className="block text-yellow-500">SEKARANG</span>
                     </h2>
@@ -441,8 +448,10 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
                 <form onSubmit={handleSubmit} className="space-y-5">
 
                     {/* Posisi — readonly */}
-                    <div className={`rounded-2xl border p-5 ${isDark ? 'bg-yellow-400/5 border-yellow-400/15' : 'bg-yellow-50 border-yellow-200/60'}`}>
-                        <label className={`text-xs font-black uppercase tracking-widest mb-1.5 block ${isDark ? 'text-yellow-400/60' : 'text-yellow-600/70'}`}>
+                    <div className={`rounded-2xl border p-5
+                        ${isDark ? 'bg-yellow-400/5 border-yellow-400/15' : 'bg-yellow-400/10 border-yellow-400/30 shadow-sm'}`}>
+                        <label className={`text-xs font-black uppercase tracking-widest mb-1.5 block
+                            ${isDark ? 'text-yellow-400/60' : 'text-yellow-700/70'}`}>
                             Posisi yang Dilamar <span className="text-red-400">*</span>
                         </label>
                         <div className="relative">
@@ -450,9 +459,9 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
                                 className={`w-full border rounded-xl px-4 py-3 text-sm font-bold cursor-not-allowed select-none focus:outline-none
                                     ${isDark
                                         ? 'bg-white/5 border-yellow-400/20 text-white'
-                                        : 'bg-white border-yellow-200 text-gray-800'}`} />
+                                        : 'bg-white border-yellow-300/50 text-stone-800 shadow-sm'}`} />
                             <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black px-2 py-0.5 rounded-lg
-                                ${isDark ? 'bg-yellow-400/10 text-yellow-400' : 'bg-yellow-100 text-yellow-600'}`}>
+                                ${isDark ? 'bg-yellow-400/10 text-yellow-400' : 'bg-yellow-400 text-black'}`}>
                                 Auto
                             </span>
                         </div>
@@ -465,7 +474,7 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
                             <F label="Nama Lengkap" value={form.namaLengkap} onChange={set('namaLengkap')} required isDark={isDark} placeholder="Sesuai KTP" />
                             <F label="NIK" value={form.nik} onChange={set('nik')} required isDark={isDark} placeholder="16 digit nomor KTP" />
                             <F label="Alamat KTP" value={form.alamatKTP} onChange={set('alamatKTP')} isDark={isDark} textarea placeholder="Alamat lengkap sesuai KTP" />
-                            <F label="Alamat Domisili" value={form.alamatDomisili} onChange={set('alamatDomisili')} isDark={isDark} textarea placeholder="Alamat tempat tinggal saat ini (kosongkan jika sama dengan KTP)" />
+                            <F label="Alamat Domisili" value={form.alamatDomisili} onChange={set('alamatDomisili')} isDark={isDark} textarea placeholder="Kosongkan jika sama dengan KTP" />
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <F label="Email" value={form.email} onChange={set('email')} type="email" required isDark={isDark} placeholder="email@gmail.com" />
                                 <F label="No. Telepon" value={form.noTelp} onChange={set('noTelp')} type="tel" required isDark={isDark} placeholder="+62 812..." />
@@ -479,12 +488,15 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
                                 <F label="Anak ke" value={form.anakKe} onChange={set('anakKe')} isDark={isDark} placeholder="1" />
                                 <F label="Dari (jml saudara)" value={form.dariSaudara} onChange={set('dariSaudara')} isDark={isDark} placeholder="3" />
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <RadioGroup label="Jenis Kelamin" value={form.jenisKelamin} onChange={set('jenisKelamin')} options={['Laki-laki', 'Perempuan']} isDark={isDark} />
-                                <RadioGroup label="Golongan Darah" value={form.golDarah} onChange={set('golDarah')} options={['A', 'B', 'AB', 'O']} isDark={isDark} />
-                            </div>
-                            <RadioGroup label="Agama" value={form.agama} onChange={set('agama')} options={['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']} isDark={isDark} />
-                            <RadioGroup label="Status Pernikahan" value={form.statusNikah} onChange={set('statusNikah')} options={['Belum Kawin', 'Kawin', 'Cerai']} isDark={isDark} />
+                            {/* 2 pilihan → TogglePills */}
+                            <TogglePills label="Jenis Kelamin" value={form.jenisKelamin} onChange={set('jenisKelamin')} options={['Laki-laki', 'Perempuan']} isDark={isDark} />
+                            {/* 4 pilihan pendek → TogglePills */}
+                            <TogglePills label="Golongan Darah" value={form.golDarah} onChange={set('golDarah')} options={['A', 'B', 'AB', 'O']} isDark={isDark} />
+                            {/* 6 pilihan → Dropdown */}
+                            <Sel label="Agama" value={form.agama} onChange={set('agama')}
+                                options={['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']} isDark={isDark} />
+                            {/* 3 pilihan → TogglePills */}
+                            <TogglePills label="Status Pernikahan" value={form.statusNikah} onChange={set('statusNikah')} options={['Belum Kawin', 'Kawin', 'Cerai']} isDark={isDark} />
                         </div>
                     </div>
 
@@ -496,9 +508,12 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
                                 <F label="Tinggi Badan (cm)" value={form.tinggiBadan} onChange={set('tinggiBadan')} isDark={isDark} placeholder="170" />
                                 <F label="Berat Badan (kg)" value={form.beratBadan} onChange={set('beratBadan')} isDark={isDark} placeholder="65" />
                             </div>
-                            <RadioGroup label="Kondisi Mata" value={form.kondisiMata} onChange={set('kondisiMata')} options={['Normal', 'Minus', 'Plus', 'Silinder', 'Buta Warna', 'Lainnya']} isDark={isDark} />
-                            <RadioGroup label="Punya Tindik / Tato?" value={form.puyaTindikTato} onChange={set('puyaTindikTato')} options={['Tidak', 'Ya']} isDark={isDark} />
-                            <RadioGroup label="Perokok?" value={form.perokok} onChange={set('perokok')} options={['Tidak', 'Ya']} isDark={isDark} />
+                            {/* 6 opsi → Dropdown */}
+                            <Sel label="Kondisi Mata" value={form.kondisiMata} onChange={set('kondisiMata')}
+                                options={['Normal', 'Minus', 'Plus', 'Silinder', 'Buta Warna', 'Lainnya']} isDark={isDark} />
+                            {/* 2 opsi → TogglePills */}
+                            <TogglePills label="Punya Tindik / Tato?" value={form.puyaTindikTato} onChange={set('puyaTindikTato')} options={['Tidak', 'Ya']} isDark={isDark} />
+                            <TogglePills label="Perokok?" value={form.perokok} onChange={set('perokok')} options={['Tidak', 'Ya']} isDark={isDark} />
                             <F label="Riwayat Penyakit" value={form.riwayatPenyakit} onChange={set('riwayatPenyakit')} isDark={isDark} placeholder="Tuliskan jika ada, atau kosongkan jika tidak ada" textarea />
                         </div>
                     </div>
@@ -508,10 +523,12 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
                         <SectionHeader icon={FileText} title="Pendidikan & Preferensi" isDark={isDark} />
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <RadioGroup label="Pendidikan Terakhir" value={form.pendidikan} onChange={set('pendidikan')} options={['SMA/SMK', 'D3', 'S1', 'S2']} isDark={isDark} />
+                                {/* 4 opsi → Dropdown lebih rapi di grid */}
+                                <Sel label="Pendidikan Terakhir" value={form.pendidikan} onChange={set('pendidikan')}
+                                    options={['SMA/SMK', 'D3', 'S1', 'S2', 'S3']} isDark={isDark} />
                                 <F label="Tahun Lulus" value={form.lulusTahun} onChange={set('lulusTahun')} isDark={isDark} placeholder="2022" />
                             </div>
-                            <RadioGroup label="Bersedia Kerja Shift?" value={form.bersediaShift} onChange={set('bersediaShift')} options={['Ya', 'Tidak']} isDark={isDark} />
+                            <TogglePills label="Bersedia Kerja Shift?" value={form.bersediaShift} onChange={set('bersediaShift')} options={['Ya', 'Tidak']} isDark={isDark} />
                         </div>
                     </div>
 
@@ -548,9 +565,10 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
 
                     {/* Error */}
                     {errorMsg && (
-                        <div className="flex items-center gap-3 px-4 py-3 bg-red-950/60 border border-red-500/30 rounded-xl">
+                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border
+                            ${isDark ? 'bg-red-950/60 border-red-500/30' : 'bg-red-50 border-red-200'}`}>
                             <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                            <p className="text-red-300 text-sm">{errorMsg}</p>
+                            <p className={`text-sm ${isDark ? 'text-red-300' : 'text-red-600'}`}>{errorMsg}</p>
                         </div>
                     )}
 
@@ -564,7 +582,7 @@ export function JobApplicationForm({ positionTitle: propTitle, positionId: propI
                             : <>Kirim Lamaran <span className="opacity-60">→</span></>}
                     </button>
 
-                    <p className={`text-xs text-center pb-8 ${isDark ? 'text-white/20' : 'text-gray-400'}`}>
+                    <p className={`text-xs text-center pb-8 ${isDark ? 'text-white/20' : 'text-stone-400'}`}>
                         Dengan mengirim form ini, kamu menyetujui penggunaan data pribadi untuk keperluan rekrutmen 100 Hours Curry.
                     </p>
                 </form>
